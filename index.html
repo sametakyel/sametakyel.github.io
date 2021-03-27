@@ -1,0 +1,527 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<title> SAMET AKYEL</title>
+<head>
+<meta name="title" content="Samet Akyel Kişisel Web Sitesi OMU Çevre Mühendisi Samsun Çorum">
+<meta name="description" content="Samet Akyel 1993 Çorum doğumlu, 2016 itibariyle ondokuz mayız üniversitesi  çevre mühendisi öğrencisi.">
+<meta name="keywords" content="samet akyel,samet akyel çorum,çevre mühendisi">
+<meta name="google-site-verification" content="4XVodwqLFWQgsueojA0SFjnDC58p7Q56zQXzcYN2iYs" />
+<meta name="robots" content="index, follow">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="initial-scale=0.68,width=device-width,user-scalable=0" />
+<link rel="icon" type="image/png" href="samet_akyel.ico">
+<link rel="stylesheet" href="samet_akyel.css">
+<script type="text/javascript">
+window.onscroll= function() {
+kaydirnavbar();
+gelincegoster();
+};
+function kaydirnavbar() {
+var navbar = document.getElementById("navbarim");
+var ustmenum = document.getElementById("ustmenum");
+  if (document.body.scrollTop > 250 || document.documentElement.scrollTop > 250){
+	navbar.classList.add("navbarac");
+	ustmenum.classList.add("ustmenuac");
+  } else {
+	navbar.classList.remove("navbarac");
+
+  }
+}
+function gelincegoster(){
+var seviye = window.scrollY;
+var nesneY = document.getElementsByClassName("kaydir");
+for(i=0;i<nesneY.length;i++){
+if(seviye > nesneY[i].offsetTop - window.innerHeight){
+	nesneY[i].classList.add("kaydirekle");
+	} else {
+	nesneY[i].classList.remove("kaydirekle");
+} }
+}
+var tumtagler = document.querySelectorAll("body *:not(#onyukleme)");
+document.onreadystatechange = () => {
+  if (document.readyState === 'complete') {
+    document.getElementById("onyukleme").style.display = "none";
+    for(i=0;i<tumtagler.length;i++){
+    tumtagler[i].style.animationPlayState = "running";
+    }
+  } else {
+    document.getElementById("onyukleme").style.display = "block";
+    for(i=0;i<tumtagler.length;i++){
+    tumtagler[i].style.animationPlayState = "paused";
+    }
+  }
+};
+</script>
+ </head> 
+ <body> 
+
+<div id="onyukleme"><!-- ON YUKLEME -->
+<div><span>Yükleniyor</span></div>
+</div>
+<div class="ben"></div>
+
+<div class="sayfa"><!-- TUM SAYFA -->
+<div class="soltaraf"><!-- SAYFA SOLU -->
+<details>
+<summary>PROJELER</summary>
+<a href="https://cevremuh.com" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Cevremuh</a>
+<a href="http://trakyaya.com" alt="Trakya Haber Sitesi">Trakyaya</a>
+</details>
+
+<details>
+<summary>SOSYAL MEDYA</summary>
+<a href="https://facebook.com/thesametakyel" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Facebook</a>
+<a href="https://instagram.com/sametakyel" alt="Trakya Haber Sitesi">Instagram</a>
+<a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter Hesabı">Twitter</a>
+</details>
+
+
+<input type="checkbox" id="yangizle"/>
+<label for="yangizle" id="yangizleyen" class="yanbuton"></label>
+<script type="text/javascript">
+var gizleyen = document.getElementById("yangizleyen");
+gizleyen.onclick = function(){gizlesin()};
+function gizlesin(){
+document.getElementsByClassName("yanbuton")[0].classList.toggle("yangizleyenekle");
+document.getElementsByClassName("soltaraf")[0].classList.toggle("soltarafekle");
+document.getElementsByClassName("sagtaraf")[0].classList.toggle("sagtarafekle");
+document.getElementsByClassName("ustlogo")[0].classList.toggle("ustlogoekle");
+document.getElementsByClassName("slayt")[0].classList.toggle("slaytekle");
+}
+</script>
+</div>
+
+<div class="sagtaraf"><!-- SAYFA SAGI -->
+<nav class="navbarim" id="navbarim"> <!-- NAVBAR SABIT -->
+<div class="sagmenu">
+<img class="ustlogo" src="ustlogo.png"/>
+<input id="menuac" type="checkbox"/>
+<label for="menuac" id="menuyuac">
+<span id="cprz1"></span><span id="cprz2"></span>
+</label><ul id="yanmenu">
+<li><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook"><div></div>FACEBOOK</a></li>
+<li><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram Adresi"><div></div>INSTAGRAM</a></li>
+<li><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter Adresi"><div></div>TWITTER</a></li>
+</ul>
+</div>
+<div class="ustmenu" id="ustmenum"> 
+    <a id="projelink" href="#projeler">Projelerim</a>
+	<ul class="projemenu">
+	<li><a href="https://cevremuh.com" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Cevremuh</a></li>
+	<li><a href="http://trakyaya.com" alt="Trakya Haber Sitesi">Trakyaya</a></li>
+	</ul>
+    <a id="sosyallink" href="#sosyalmedya">Sosyal Menu</a>
+	<ul class="sosyalmenu">
+	<li><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook"><div style="background:url(sosyal2.png) left/cover no-repeat"><span>Facebook</span></div></a></li>
+	<li><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram adresi"><div style="background:url(sosyal2.png) center/cover no-repeat"><span>Instagram</span></div></a></li>
+	<li><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter"><div style="background:url(sosyal2.png) right/cover no-repeat"><span>Twitter</span></div></a></li>
+	</ul>
+    <a>İletisim</a>
+   </div>
+</nav>
+
+<header>
+<div class="headeresim"></div> <!-- HEADER ARKA PLAN -->
+<span class="hareket"></span> <!-- ARKA YUVARLAK ÜÇGEN ANİMASYON-->
+<span class="hareket"></span> <!-- ARKA YUVARLAK ÜÇGEN ANİMASYON-->
+<span class="hareket"></span> <!-- ARKA YUVARLAK ÜÇGEN ANİMASYON-->
+<span class="hareket"></span> <!-- ARKA YUVARLAK ÜÇGEN ANİMASYON-->
+
+
+<div class="ustic"> <!-- MOBİL HEADER AÇILIR -->
+
+<div> <!-- MOBİL PROJELER -->
+<input type="radio" id="acsin" name="acs"/>
+<label for="acsin"><h1>Projelerim</h1></label>
+<span>Yapmış olduğum projeler</span>
+<ul id="acilsin">
+<li><a href="https://cevremuh.com" alt="Çevre Mühendisliği Haber Paylaşım Platformu"><img src="cevre.jpg"/></br>CEVREMUH.COM</a></li>
+<li><a href="http://trakyaya.com" alt="Trakya Haber Sistesi"><img src="trakya.jpg"/></br>TRAKYAYA.COM</a></li>
+</ul>
+</div>
+<div> <!-- MOBİL SOSYAL MEDYA -->
+<input type="radio" id="acsin2" name="acs"  />
+<label for="acsin2"><h1>Sosyal Medya</h1></label>
+<span>Sosyal Medya Hesaplarım</span>
+<ul id="acilsin2">
+<li><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook"><img src="face.png"/></br>FACEBOOK</a></li>
+<li><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram adresi"><img src="insta.png"/></br>INSTAGRAM</a></li>
+<li><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter"><img src="twi.png"/></br>TWITTER</a></li>
+</ul>
+</div>
+<div>  <!-- MOBİL CV -->
+<input type="radio" id="acsin3" name="acs"  />
+<label for="acsin3"><h1>Özgeçmiş</h1></label>
+<span>CV Görüntüle</span>
+<ul id="acilsin3">
+<li><button class="dislink"><a href="#ozgecmis" alt="Samet Akyel Özgeçmiş">GÖRÜNTÜLE</a></button></li>
+</ul>
+</div>
+</div>
+
+<div class="headerici">
+
+<div class="slayt">
+<div>
+<input class="slytdurum" type="radio" name="slayt" id="proje-1" />
+<label for="proje-1"><img src="prj.svg" width="40">PROJELER</label>
+<input class="slytdurum" type="radio" name="slayt" id="proje-2"/>
+<label for="proje-2"><img src="ssyl.svg" width="45">SOSYAL MEDYA</label>
+<input class="slytdurum" type="radio" name="slayt" id="proje-3"/>
+<label for="proje-3"><img src="cv.svg" width="45">ÖZGEÇMİŞ</label>
+<input class="slytdurum" type="radio" name="slayt" id="proje-4"/>
+<label for="proje-4"><img src="neler.svg" width="45">Neler Yapabilirim</label>
+<div id="prj1">
+<div>
+<h1>Projeler</h1>
+<h2>2015 yılında PHP/MySQL ile tarafımdan yazılmış olan Cevremuh ve Trakyaya haber platformunu içeren çalışmalarımı görmek için</h2>
+<a href="https://cevremuh.com">Cevremuh.com</a>
+<a href="http://trakyaya.com">Trakayaya.com</a>
+</div>
+</div>
+<div id="prj2">
+<div>
+<h1>Sosyal Medya</h1>
+<h2>Facebook, Instagram ve Twitter Adreslerim</h2>
+<a href="https://facebook.com/thesametakyel">Facebook</a>
+<a href="https://twitter.com/sametakyel">Twitter</a>
+<a href="https://instagram.com/sametakyel">Instagram</a>
+</div>
+</div>
+<div id="prj3">
+<div>
+<h1>Özgeçmiş</h1>
+<h2>Eğitim, Çalışma Hayatım ve Bazı Sertifikalarımın yer aldığı CV</h2>
+<a href="#ozgecmis">CV Görüntüle</a>
+</div>
+</div>
+<div id="prj4">
+<div>
+<h1>Neler Yapabilirim ?</h1>
+<h2>Php MySQL iletişimi ile websitenize dinamik bir sistem ve iyi bir arama motoru optimizasyonu uygulayabilirim.. </br></br>
+IIS ile local serverda bir işyeri için paylaşım plaformu kurabilirim.. </br></br>
+Excelde ayrıntılı veri giriş uygulaması hazırlayabilirim..</h2>
+
+</div>
+</div>
+</div>
+</div>
+<div class="listeyan">
+<div id="kayanyan">
+<div class="yuvarlakgorsel">
+<a href="#projeler"><div class="yuvarlakgorselic">CEVREMUH</div></a>
+</div>
+
+<div class="yuvarlakgorsel">
+<a href="#projeler"><div class="yuvarlakgorselic">TRAKYAYA</div></a>
+</div>
+
+<div class="yuvarlakgorsel">
+<a href="#sosyalmedya"><div class="yuvarlakgorselic">FACEBOOK</div></a>
+</div>
+
+<div class="yuvarlakgorsel">
+<a href="#sosyalmedya"><div class="yuvarlakgorselic">TWITTER</div></a>
+</div>
+
+<div class="yuvarlakgorsel">
+<a href="#sosyalmedya"><div class="yuvarlakgorselic">INSTAGRAM</div></a>
+</div>
+</div>
+</div>
+<script type="text/javascript">
+var kayy = document.getElementsByClassName("yuvarlakgorsel")[0].offsetHeight + 30;
+var kayan = document.getElementById("kayanyan");
+setInterval(function(){ 
+kayan.scrollTop += kayy;
+}, 2000);
+setInterval(function(){ 
+kayan.scrollTop=0;
+}, 10000);
+</script>
+<script>
+var slaytindex = 0;
+slaytkay();
+
+function slaytkay() {
+  var i;
+  var durum = document.getElementsByClassName("slytdurum");
+  for (i = 0; i < durum.length; i++) {
+    durum[i].checked = false;  
+  }
+  slaytindex++;
+  if (slaytindex > durum.length) {slaytindex = 1}    
+  durum[slaytindex-1].checked = true;  
+  setTimeout(slaytkay, 5000);
+}
+</script>
+</div>
+
+<script type="text/javascript">
+var samet = document.getElementById("sametakyel");
+var proje = document.getElementById("proje");
+var sosyal= document.getElementById("sosyal");
+var pyazi = document.getElementsByClassName("pyazi")[0];
+var syazi = document.getElementsByClassName("syazi")[0];
+
+function ssyal(e) {
+e.classList.toggle("solacek2");
+proje.classList.toggle("gizle");
+syazi.classList.toggle("acik2");
+}
+function prj(e) {
+e.classList.toggle("solacek");
+sosyal.classList.toggle("gizle");
+pyazi.classList.toggle("acik");
+}
+</script>
+
+</header>
+
+
+<div class="ustara">
+<h1>Bazı Arkadaşlarım</h1>
+<div>
+<div></div>
+<h1>HTML</h1>
+</div>
+<div>
+<div></div>
+<h1>CSS</h1>
+</div>
+<div>
+<div></div>
+<h1>JavaScript</h1>
+</div>
+
+<div>
+<div></div>
+<h1>php MySQL</h1>
+</div>
+<div>
+<div></div>
+<h1>Photoshop</h1>
+</div>
+<div>
+<div></div>
+<h1>Google Services</h1>
+</div>
+</div>
+
+<section class="projelerim kaydir" id="projeler">
+ 	<div class="kaydir">
+	<h1>Projelerim</h1>
+	</div>
+	<div class="kaydir">
+	<div class="kaydir"></div>
+	<h1 class="kaydir">Cevremuh</h1>
+	<label>2015 Senesinde tarafımdan php 5.4.x ile kodlanmış ve bir çok yazısı ilk sıralarda yer alan haber/paylaşım sitesi.</br> <span>Güçlü SEO</span><span>Rekabetci Makale</span><span>Hızlı Sayfa Erişimi</span></label>
+	<button><a href="https://cevremuh.com" alt="Çevre Mühendisliği Haber Paylaşım">cevremuh.com</a></button>
+	</div>
+	<div class="kaydir">
+	<div class="kaydir"></div>
+	<h1 class="kaydir">Trakyaya</h1>
+	<label>Site 2020 yılında php 7.x ile tarafımdan yazılmıştır. Tema olarak Facebook esintileri ile Sosyal Paylaşım Sitelerine paylaşım amaçlanarak yapılmıştır.</label>
+	<button><a href="http://trakyaya.com" alt="Trakya Haber Sitesi">trakyaya.com</a></button>
+	</div>
+  </section> 
+
+<div class="ara kaydir">
+<div>
+<input type="radio" name="haritada" id="is"/>
+<label id="islabel" for="is"><img src="is.svg" />İŞ</label>
+<div id="isim"><span>Çorum</span><span>Kütahya</span><span>Tekirdağ</span></div>
+
+<input type="radio" name="haritada" id="okul"/>
+<label id="okullabel" for="okul"><img src="okul.svg" />EĞİTİM</label>
+<div id="okulum"><span>KAYSERİ (2011-2012)</span><span>SAMSUN (2012-2017)</span><span>İSTANBUL (2017-2018)</span></div>
+
+<input type="radio" name="haritada" id="askerlik"/>
+<label id="askerlabel" for="askerlik"><img src="asker.png" />ASKERLİK</label>
+<div id="askerim"><span>KIZILTEPE / MARDİN</span></div>
+<div id="tumsayilar">
+<div id="gsayisi"> Sayısı</div>
+<div id="isayisi"> Sayısı</div>
+<div id="osayisi"> Sayısı</div>
+<div id="asayisi"> Sayısı</div>
+</div>
+</div>
+<div class="harita">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 457px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 574px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 114px; left: 549px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 95px; left: 512px;">
+<img src="okul.svg" style="position: absolute; height: 40px; width: 25px; top: 54px; left: 507px;"> <!-- Samsun -->
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 71px; left: 617px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 73px; left: 646px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 61px; left: 709px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 58px; left: 752px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 28px; left: 799px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: -2px; left: 817px;">
+<img src="asker.png" style="position: absolute; height: 35px; width: 35px; top: 316px; left: 787px;"><!-- Mardin -->
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 319px; left: 677px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 327px; left: 601px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 380px; left: 529px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 340px; left: 488px;">
+<img src="okul.svg" style="position: absolute; height: 40px; width: 25px; top: 244px; left: 493px;"> <!-- Kayseri -->
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 231px; left: 454px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 194px; left: 425px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 353px; left: 451px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 284px; left: 334px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 342px; left: 229px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 282px; left: 225px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 221px; left: 229px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 146px; left: 232px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 135px; left: 346px;">
+<img src="is.svg" style="position: absolute; height: 40px; width: 25px; top: 100px; left: 463px;"> <!-- Çorum -->
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 45px; left: 401px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 40px; left: 303px;">
+<img src="okul.svg" style="position: absolute; height: 40px; width: 25px; top: 58px; left: 155px;"> <!-- Istanbul -->
+<img src="is.svg" style="position: absolute; height: 40px; width: 25px; top: 77px; left: 57px;"> <!-- Tekirdag -->
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 6px; left: 65px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 10px; left: 34px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 110px; left: 17px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 230px; left: 178px;">
+<img src="is.svg" style="position: absolute; height: 40px; width: 25px; top: 205px; left: 187px;"> <!-- Kutahya -->
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 117px; left: 153px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 93px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 391px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 2px; left: 473px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 461px; left: 388px;">
+<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 276px; left: 453px;">
+</div>
+</div>
+<script type="text/javascript">
+var okuls =  document.querySelectorAll('img[src="okul.svg"]');
+var gezs =  document.getElementsByClassName("harita")[0].querySelectorAll("img[src]");
+var askers =  document.querySelectorAll("img[src='asker.png']");
+var iss =  document.querySelectorAll("img[src='is.svg']");
+document.getElementById("isayisi").innerHTML = "Çalıştığım Yerler : " + Math.abs(iss.length-1) + " Şehir";
+document.getElementById("osayisi").innerHTML = "Okuduğum Yerler : " + Math.abs(okuls.length-1) + " Şehir";
+document.getElementById("asayisi").innerHTML = "Askerliği Yaptığım Yer : " + Math.abs(askers.length-1) + " Şehir";
+document.getElementById("gsayisi").innerHTML = "Tüm Gidilen Yerler : " + Math.abs(gezs.length) + " Şehir";
+</script>
+<section class="cv" id="ozgecmis">
+	<div class="kaydir">
+ 	<div>
+	<h1>Özgeçmiş</h1>
+	</div>
+	<img src="ben.jpg"/>
+	<h2>Kısaca</h2>
+	<p>Yaş 27 Memleket Çorum. 2 İlkokul 2 Lise 3 Üniversitede eğitim gördüm. Sıkı bir <font color="OrangeRed">Galata</font><font color="orange">saray</font> taraftarıyım. Bilgisayar ile çok erken yaşta tanıştım. Yaklaşık 12 senedir Web Site tasarlıyorum. İlk işim 16 yaşında arkadaşımın dayısının temizlik şirketine site yapmak olmuştu. Ama ne siteydi :)</p>
+	</div>
+	<div class="kaydir">
+	<h2>Eğitim</h2>
+	<h3>İLKÖĞRETİM</h3>
+	<p>İskilip Atatürk İlköğretim</p>
+	<p>Çorum 23 Nisan İlköğretim</p>
+	<h3>LİSE</h3>
+	<p>Çorum Anadolu Öğretmen Lisesi</p>
+	<p>Çorum Atatürk Lisesi</p>
+	<h3>ÜNİVERSİTE</h3>
+	<p>Melikşah Üniversitesi (2011-2012)</br>
+	<span>&#9656;</span> İngilizce Hazırlık</p>
+	<p>Ondokuz Mayıs Üniversitesi (2012-2017)</br>
+	<span>&#9656;</span> Çevre Mühendisliği</p>
+	<h3>YÜKSEK LİSANS</h3>
+	<p>Yeni Yüzyıl Üniversitesi (2017-2018)</br>
+	<span>&#9656;</span> İş Sağlığı ve Güvenliği</p>
+	</div>
+	<div class="kaydir">
+	<h2>Çalışma Geçmişi</h2>
+	<h3>ÇEVRE MÜHENDİSİ</h3>
+	<p>Linyit Ocağı</p>
+	<h3>SEVKİYAT SORUMLUSU</h3>
+	<p>Linyit Sevkiyatı</p>
+	</div>
+	<div class="kaydir">
+	<h2>Yetkinlikler</h2>
+	<h3>WEB</h3>
+	<p>HTML/CSS ve pureJavascript <span>&#9733;&#9733;&#9733;&#9733;&#9734;</span></p>
+	<p>PHP/MySQL <span>&#9733;&#9733;&#9733;&#9734;&#9734;</span></p>
+	<h3>OFFICE</h3>
+	<p>EXCEL <span>&#9733;&#9733;&#9733;&#9733;&#9734;</span></p>
+	<h3>PROGRAMLAR</h3>
+	<p>Photshop CS <span>&#9733;&#9733;&#9733;&#9734;&#9734;</span></p>
+	<p>Viusal Basic <span>&#9733;&#9733;&#9734;&#9734;&#9734;</span></p>
+	</div>
+	<div class="kaydir">
+	<h2>Serfifika & Belgeler</h2>
+	<p>ÇEVRE GÖREVLİSİ</p>
+	<p>LPG SORUMLU MÜDÜR</p>
+	<p>B SINIFI EHLİYET</p>
+	<p>İLK YARDIM SERTİFİKASI</p>
+	</div>
+  </section>
+
+<div class="araiki kaydir">
+<div class="kaydir">
+<img src="dinamik.svg"/>
+<label><h1>Dinamik Siteler</h1>
+Kayıt sistemi ile Kullanımı kolay Yönetim Paneline sahip özgün arayüzü ile hedef kitlesine uygun tasarımlar.
+<span>&#9737;</span></label>
+</div class="kaydir">
+<div>
+<img src="seo.svg"/>
+<label><h1>Güçlü Seo</h1>
+Sayfalarınızı Google'da üst sıralarda gösterilmesi için hassas olarak hazırlanmış scriptler.
+<span>&#9737;</span></label>
+</div>
+<div class="kaydir">
+<img src="resp.png"/>
+<label><h1>Responsive Tasarım</h1>
+Chrome,Firefox,Edge ve Opera gibi tarayıcılarda ve tüm Android/IOS cihazlarda desteklenen duyarlı tasarım.
+<span>&#9737;</span></label>
+</div>
+</div>
+
+<section class="sosyallerim" id="sosyalmedya">
+	<div class="kaydir">
+	<h1>Sosyal Medya Hesaplarım</h1>
+	</div>
+	<div class="kaydir">
+	<div></div>
+	<h1>Facebook</h1>
+	<label>Facebook Adresime</label>
+	<button><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook">GİT</a></button>
+	</div>
+	<div class="kaydir">
+	<div></div>
+	<h1>Instagram</h1>
+	<label>Instagram Profilime</label>
+	<button><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram">GİT</a></button>
+	</div>
+	<div class="kaydir">
+	<div></div>
+	<h1>Twitter</h1>
+	<label>Twitter Profilime</label>
+	<button><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter">GİT</a></button>
+	</div>
+  </section> 
+
+<footer> 
+   <div class="kaydir">
+     <h2>SİTE İNFO</h2>
+	<label><i>Kodlamada pureJavascript ScrollLoad ve CSS Display Grid & Flex kullanılmıştır.</i></label>
+   </div> 
+   <div class="kaydir" id="iletisim">
+    <h2>İLETİŞİM</h2>
+	<form>
+	<input type="text" placeholder="Lütfen İsim Yazınız"/>
+	<textarea placeholder="Mesaj Yaz"></textarea>
+	<input type="submit" value="GÖNDER"/>
+	</form>
+   </div> 
+   <div class="kaydir">
+	<img src="kafam2.png" width="150" height="150"/>
+     <label><i>Bu site <b>Samet AKYEL</b> tarafından yapılmıştır</i></label> 
+   </div> 
+  </footer> 
+  
+</div>
+
+</div>
+</body>
+</html>
