@@ -5,7 +5,7 @@ header {z-index:1;overflow:hidden;position:relative;width:100%;height:100vh;disp
 .headeresim img {object-fit:cover;border-radius:25px;box-shadow:0px 3px 5px 1px #666;margin:0 20px 0 0}
 .headeresim h1 {font:bold small-caps 2rem Arial Black;margin:20px 0px;padding:0;letter-spacing:-3px;color:gold}
 .headeresim label {background:rgba(0,0,0,0.35);display:inline-block;margin:30px 0px 0 0px;padding:0;color:#fff;font:bold 16px Verdana;line-height:25px;padding:20px;box-sizing:border-box;border-radius:15px}
-.headeresim a {display:block;text-decoration:none;margin:45px 0;padding:16px 28px;border:0;color:#fff;font:bold 14px Arial;border-radius:5px;width:150px}
+.headeresim a {display:block;text-decoration:none;margin:45px 0;padding:16px 28px;border:0;color:#fff;font:bold 14px Arial;border-radius:5px}
 @keyframes renkdeg {
 0% {background-position: 0% 50%;}
 25% {background-position: 80% 50%;}
