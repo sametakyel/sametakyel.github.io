@@ -273,7 +273,7 @@ z-index:9;justify-content:flex-start;border-bottom:1px solid rgba(0,0,0,0.05);di
 .projelerim {position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;width:100%;padding:5%;box-sizing:border-box;background:linear-gradient(180deg,rgba(0,0,0,0.40),rgba(240,245,255,0.40)),url(projelerim.jpg) center center/cover no-repeat fixed;z-index:8;box-shadow:0px 0px 15px 1px #444}
 .projelerim h1 {display:block;width:100%;text-align:center;font:bold small-caps 450% Impact;padding:0;margin:10px 0;color:gold;-webkit-filter: drop-shadow(0px 3px 3px #333);filter: drop-shadow(0px 3px 3px #333)}
 .projediv {overflow:hidden;width:32%;border-radius:8px;margin:20px 0;padding:0px 0px 30px 0px;box-sizing:border-box;background:rgba(255,255,255,0.95);box-shadow:0px 2px 4px 1px #666}
-.projediv h2 {font:bold small-caps 190% Impact;padding:0 20px;box-sizing:border-box;margin:5px 0;color:#fff;-webkit-filter: drop-shadow(0px 2px 2px rgb(88,88,160));filter: drop-shadow(0px 2px 2px rgb(88,88,160))}
+.projediv h2 {font:bold small-caps 190% Impact;padding:0 20px;box-sizing:border-box;margin:5px 0;color:gold;-webkit-filter: drop-shadow(0px 2px 2px rgb(88,88,160));filter: drop-shadow(0px 2px 2px rgb(88,88,160))}
 .projediv label {color:#555;display:block;width:90%;margin:10px 0 25px 0;padding:0 20px;box-sizing:border-box;}
 .projediv a{cursor:pointer;padding:10px 25px;margin:10px 20px;background:rgb(88,88,160);border:1px solid rgba(88,88,160,1);border-radius:5px;transition:0.5s all;font:bold 100% Arial;transition:0.5s all;outline;0px;text-decoration:none;color:#fff}
 .projediv div {width:100%;height:240px;}
@@ -353,8 +353,8 @@ footer div>form input[type="submit"]:hover{background:lime;color:#000}
 footer div>form textarea{border-radius:3px;background:transparent;outline:0;border:0;border-bottom:1px solid #eee;margin:10px 0;width:100%;resize: none;padding:15px;box-sizing:border-box;color:#aaaa}
 footer div>form textarea:focus{border-bottom:1px solid lime;box-sizing:border-box;color:#fff}
 footer h2 {font:small-caps 200% Impact;margin:20px 0}
-#onyukleme {z-index:99999;position:fixed;background:#f4f4f4;width:100%;height:100%}
-#onyukleme div{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:160px;background:url(http://sametakyel.github.io/kafam2.png);background-size:100% 100%;background-repeat:no-repeat;border-radius:50%;animation:yukleniyor 3s infinite linear;}
+#onyukleme {z-index:99999;position:fixed;background:#f4f4f4;width:100%;height:100%;margin:0;padding:0}
+#onyukleme div{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:160px;height:160px;background:url(http://sametakyel.github.io/kafam2.png);background-size:100% 100%;background-repeat:no-repeat;border-radius:50%;animation:yukleniyor 3s infinite linear;}
 #onyukleme div>span {display:block;margin-top:170px;line-height:450px;font:small-caps 180% Impact;color:tomato}
 @keyframes yukleniyor{
 0% {filter:grayscale(0%);transition:1s all}
