@@ -21,8 +21,18 @@ header {z-index:1;overflow:hidden;position:relative;width:100%;height:100vh;disp
 .soltaraf input[type=checkbox]{visibility:hidden;position:absolute;opacity:0;width:0;height:0;}
 .soltaraf details {transition:height 0.5s ease;overflow: hidden;border:0;width:100%;padding:0 5%;box-sizing:border-box;margin:10px 0px;}
 .soltaraf details>summary {cursor:pointer;outline:none;border-radius:5px}
+
+.soltaraf details:nth-child(1)>summary{display:block;background:linear-gradient(to bottom, rgba(255,255,255,0.5),rgba(255,255,255,0.5)),url(ben.jpg) center/cover no-repeat;padding:80px 0px;text-align:center;color:#111}
+.soltaraf details:nth-child(1)>summary:focus,.soltaraf details:nth-child(1)>summary:hover{background:linear-gradient(to bottom, rgba(255,255,255,0),rgba(255,255,255,0)),url(samet_akyel.jpg) center/cover no-repeat;color:#fff}
+.soltaraf details:not([open]):nth-child(1){height:auto;font:small-caps 150% Impact;outline:0;border:0}
+.soltaraf details[open]:nth-child(1){height:auto;font:small-caps 150% Impact}
+.soltaraf details:nth-child(1) a{z-index:5;display:block;text-decoration:none;color:darkblue;padding-left:2%;box-sizing:border-box;margin:10px 0}
+.soltaraf details:nth-child(1) a:hover,.soltaraf details:nth-child(2) a:hover{color:mediumseagreen}
+.soltaraf details:nth-child(1) a:before {z-index:-1;content:"";display:block;position:absolute;margin-left:-2%;margin-top:27px;width:5px;border-bottom:1px solid black;background:mediumseagreen;transition:0.5s width}
+.soltaraf details:nth-child(1) a:hover:before {z-index:1;width:90%;transition:0.5s width}
+
 .soltaraf details:nth-child(2)>summary{display:block;background:linear-gradient(to bottom, rgba(255,255,255,0.5),rgba(255,255,255,0.5)),url(projelerim.jpg) center/cover no-repeat;padding:80px 0px;text-align:center;color:#111}
-.soltaraf details:nth-child(2)>summary:focus,.soltaraf details:nth-child(1)>summary:hover{background:linear-gradient(to bottom, rgba(255,255,255,0),rgba(255,255,255,0)),url(projelerim.jpg) center/cover no-repeat;color:#fff}
+.soltaraf details:nth-child(2)>summary:focus,.soltaraf details:nth-child(2)>summary:hover{background:linear-gradient(to bottom, rgba(255,255,255,0),rgba(255,255,255,0)),url(projelerim.jpg) center/cover no-repeat;color:#fff}
 .soltaraf details:not([open]):nth-child(2){height:auto;font:small-caps 150% Impact;outline:0;border:0}
 .soltaraf details[open]:nth-child(2){height:auto;font:small-caps 150% Impact}
 .soltaraf details:nth-child(2) a{z-index:5;display:block;text-decoration:none;color:darkblue;padding-left:2%;box-sizing:border-box;margin:10px 0}
@@ -31,15 +41,12 @@ header {z-index:1;overflow:hidden;position:relative;width:100%;height:100vh;disp
 .soltaraf details:nth-child(2) a:hover:before {z-index:1;width:90%;transition:0.5s width}
 
 .soltaraf details:nth-child(3)>summary{display:block;background:linear-gradient(to bottom, rgba(255,255,255,0.5),rgba(255,255,255,0.5)),url(sosyalmedya.jpg) center/cover no-repeat;padding:80px 0px;text-align:center;color:#111}
-.soltaraf details:nth-child(3)>summary:focus,.soltaraf details:nth-child(2)>summary:hover{background:linear-gradient(to bottom, rgba(255,255,255,0),rgba(255,255,255,0)),url(sosyalmedya.jpg) center/cover no-repeat;color:#fff}
+.soltaraf details:nth-child(3)>summary:focus,.soltaraf details:nth-child(3)>summary:hover{background:linear-gradient(to bottom, rgba(255,255,255,0),rgba(255,255,255,0)),url(sosyalmedya.jpg) center/cover no-repeat;color:#fff}
 .soltaraf details:not([open]):nth-child(3){height:auto;font:small-caps 150% Impact;outline:0;border:0}
 .soltaraf details[open]:nth-child(3){height:auto;font:small-caps 150% Impact}
 .soltaraf details:nth-child(3) a{z-index:5;display:block;text-decoration:none;color:darkblue;padding-left:2%;box-sizing:border-box;margin:10px 0}
 .soltaraf details:nth-child(3) a:before {z-index:-1;content:"";display:block;position:absolute;margin-left:-2%;margin-top:27px;width:5px;border-bottom:1px solid black;background:mediumseagreen;transition:0.5s width}
 .soltaraf details:nth-child(3) a:hover:before {z-index:1;width:90%;transition:0.5s width}
-.soltaraf h1 {font:small-caps 250% Impact,sans,serif;padding:0;margin:10px 0;color:tomato;-webkit-filter: drop-shadow(0px 3px 3px #555);filter: drop-shadow(0px 3px 3px #555);}
-.soltaraf ul {margin:0;padding:0;list-style-type:none;}
-.soltaraf ul li {letter-spacing:-0.5px;font:14px Arial;padding:5px 20px;box-sizing:border-box}
 
 .yanbuton {cursor:pointer;position:absolute;background:rgba(88,88,160,0.9);box-shadow:0px 0px 3px 1px #444;left:100%;top:50%;transform:translate(-100%,-50%);margin-left:25px;padding:9px 18px;border-radius:50%;outline:0;border:0;text-align:center;font-size:150%}
 .yanbuton:hover {background:mediumseagreen;transition:0.5s all;box-shadow:0px 0px 5px 1px #444;}
