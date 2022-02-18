@@ -127,6 +127,21 @@ document.onreadystatechange = () => {
 <a href="https://www.linkedin.com/in/sametakyel/" alt="Samet Akyel Linkedin Hesabı">Linkedin</a>
 </details>
 
+<script>
+const detaylar = document.querySelectorAll("details");
+
+function detaycheck() {
+  let detayacik = document.querySelectorAll("details[open]");
+  for (const dt of detayacik) {
+    if (this != dt) {
+      dt.removeAttribute("open");
+    }
+  }
+}
+detaylar.forEach(function (dt) {
+  dt.addEventListener("click", detaycheck);
+});
+</script>
 
 <input type="checkbox" id="yangizle"/>
 <label for="yangizle" id="yangizleyen" class="yanbuton"></label>
