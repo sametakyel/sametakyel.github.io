@@ -174,7 +174,6 @@ document.getElementsByClassName("slayt")[0].classList.toggle("slaytekle");
     <a id="projelink" href="#projeler">Projelerim</a>
 	<ul class="projemenu">
 	<li><a href="https://cevremuh.com" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Cevremuh</a></li>
-	<li><a href="http://trakyaya.com" alt="Trakya Haber Sitesi">Trakyaya</a></li>
 	</ul>
     <a id="sosyallink" href="#sosyalmedya">Sosyal Menu</a>
 	<ul class="sosyalmenu">
@@ -227,22 +226,6 @@ document.getElementsByClassName("slayt")[0].classList.toggle("slaytekle");
 </center>
 </div>
 </div>
-<script> 
-var rs = document.querySelectorAll(".ustara:nth-child(1) img");
-var resimurl = [];
-for(var i=0;i<rs.length;i++){resimurl.push(rs[i].src)}
-setInterval(function(){ 
-let arr = [];
-do {
-  let num = Math.floor(Math.random() * 6);
-  arr.push(num);
-  arr = arr.filter((item, index) => {
-    return arr.indexOf(item) === index
-  });
-} while (arr.length < 6);
-for(var i=0;i<rs.length;i++){rs[i].src = resimurl[arr[i]]}
-},3500);
-</script>
 
 <div class="ustara">
 <h1>Bazı Arkadaşlarım</h1>
@@ -511,5 +494,22 @@ Chrome,Firefox,Edge ve Opera gibi tarayıcılarda ve tüm Android/IOS cihazlarda
 </div>
 
 </div>
+
+<script> 
+var rs = document.querySelectorAll(".ustara:nth-child(1) img");
+var resimurl = [];
+for(var i=0;i<rs.length;i++){resimurl.push(rs[i].src)}
+setInterval(function(){ 
+let arr = [];
+do {
+  let num = Math.floor(Math.random() * 6);
+  arr.push(num);
+  arr = arr.filter((item, index) => {
+    return arr.indexOf(item) === index
+  });
+} while (arr.length < 6);
+for(var i=0;i<rs.length;i++){rs[i].src = resimurl[arr[i]]}
+},3500);
+</script>
 </body>
 </html>
