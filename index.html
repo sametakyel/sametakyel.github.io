@@ -193,7 +193,7 @@ document.getElementsByClassName("slayt")[0].classList.toggle("slaytekle");
 <a href="#ozgecmis">ÖZGEÇMİŞ</a>
 </div>
 
-<div class="ustara">
+<div class="ustara" id="galerihareket">
 <h1>GALERİ</h1>
 <div>
 <center>
@@ -496,7 +496,7 @@ Chrome,Firefox,Edge ve Opera gibi tarayıcılarda ve tüm Android/IOS cihazlarda
 </div>
 
 <script> 
-var rs = document.querySelectorAll(".ustara:nth-child(1) img");
+var rs = document.querySelectorAll("#galerihareket img");
 var resimurl = [];
 for(var i=0;i<rs.length;i++){resimurl.push(rs[i].src)}
 setInterval(function(){ 
