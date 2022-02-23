@@ -3,7 +3,7 @@ html {scroll-behavior: smooth}
 ::-webkit-scrollbar-thumb {background: tomato;border-radius: 20px;}
 body {background:#ddd;margin:0;padding:0;overflow-x:hidden;overflow-y:scroll;scroll-behavior: smooth;}
 header {z-index:1;overflow:hidden;position:relative;width:100%;height:100vh;display:flex;flex-direction:row;box-shadow:0px 0px 15px 1px #444;background:url(header.jpg) right top/cover;margin:0;padding:0}
-.headeresim {position:relative;z-index:2;margin:0;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;width:100vw;background:linear-gradient(180deg,rgba(50,55,55,0.85),rgba(247,247,247,0.55)),url(samet_akyel.jpg);padding:110px 5% 0px 5%;box-sizing:border-box;background-position:center;background-size:cover;animation:renkdeg 8s linear infinite;background-attachment: fixed;width:100%}
+.headeresim {position:relative;z-index:2;margin:0;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;height:100vh;background:linear-gradient(180deg,rgba(50,55,55,0.85),rgba(247,247,247,0.55)),url(samet_akyel.jpg);padding:110px 5% 0px 5%;box-sizing:border-box;background-position:center;background-size:cover;animation:renkdeg 8s linear infinite;background-attachment: fixed}
 .headeresim img {object-fit:cover;border-radius:25px;box-shadow:0px 3px 5px 1px #666;margin:0 20px 0 0}
 .headeresim h1 {font:bold small-caps 2rem Arial Black;margin:20px 0px;padding:0;letter-spacing:-3px;color:gold}
 .headeresim label {background:rgba(0,0,0,0.35);display:inline-block;margin:30px 0px 0 0px;padding:0;color:#fff;font:bold 16px Verdana;line-height:25px;padding:20px;box-sizing:border-box;border-radius:15px}
@@ -220,7 +220,7 @@ to{margin-left:0px;opacity:1}
 100%{visibility:visible;margin:-25px 0px;opacity:1;}
 }
 
-.ara {position:relative;background:#fff;z-index:6;width:100%;padding:5%;box-sizing:border-box;min-height:520px;overflow-x:auto;display:flex;flex-direction:row;justify-content:space-between}
+.ara {position:relative;background:#fff;z-index:6;width:100%;padding:20px 5%;box-sizing:border-box;min-height:520px;overflow-x:auto;display:flex;flex-direction:row;justify-content:space-between}
 .ara>div:nth-child(1){width:45%;min-width:280px;display:flex;flex-direction:column;margin:0 2.5%;}
 .ara>div:nth-child(2){width:47.5%;}
 .ara>div:nth-child(1) input{visibility:hidden;opacity:0}
@@ -247,7 +247,7 @@ to{margin-left:0px;opacity:1}
 .araiki label{display:block;margin-top:-50px;width:100%;padding:25px 30px;border-radius:5px;box-sizing:border-box;font:90% Arial;background:rgba(255,255,255,0.95);box-shadow:0px 0px 5px 1px #aaa;color:#333}
 .araiki label>span {display:block;width:100%;text-align:center;font:bold 200% Impact;color:#5B5EA6}
 
-.ustara {position:relative;z-index:6;width:100%;padding:90px 0px;background:#f5f5f5;display:grid;grid-template-columns:33% 33% 33%;grid-gap:50px 0px;box-sizing:border-box}
+.ustara {position:relative;z-index:6;width:100%;padding:20px 0px;background:#f5f5f5;display:grid;grid-template-columns:33% 33% 33%;grid-gap:50px 0px;box-sizing:border-box}
 .ustara:before {z-index:-1;content:"";display:block;position:absolute;width:40%;height:60%;left:80px;top:50px;;background:#e1e1e1}
 .ustara:after {z-index:-1;content:"";display:block;position:absolute;width:40%;height:60%;left:106px;top:75px;;background:#e8e8e8}
 .ustara div {margin:0px 5px;padding:0px 20px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;border-radius:5px;}
@@ -261,7 +261,7 @@ to{margin-left:0px;opacity:1}
 .ustara>div:nth-child(7) div{background:url(dgr.png) right/cover;width:102px;height:55px}
 .ustara>div h1 {z-index:1;font:120% Impact;color:DarkSlateBlue;margin:15px 0px;padding:0}
 .ustara>h1 {display:block;width:100%;grid-area:1/1/span 1/span 3;font:small-caps;font:bold small-caps 350% Impact;padding:0;margin:30px 0;text-align:center;color:tomato}
-
+.ustara img {border-radius:8px;box-shadow:}
 .cv {
   display: grid;
   grid-template-columns:auto auto auto;
@@ -282,7 +282,7 @@ z-index:9;justify-content:flex-start;border-bottom:1px solid rgba(0,0,0,0.05);di
 .cv>div:nth-child(5){grid-area: 3 / 2 / span 1 / span 1;border:0;}
 .cv>div:last-child{border:0}
 
-.projelerim {position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;width:100%;padding:5%;box-sizing:border-box;background:linear-gradient(180deg,rgba(0,0,0,0.40),rgba(240,245,255,0.40)),url(projelerim.jpg) center center/cover no-repeat fixed;z-index:8;box-shadow:0px 0px 15px 1px #444}
+.projelerim {position:relative;display:flex;flex-wrap:wrap;justify-content:space-between;width:100%;padding:5%;box-sizing:border-box;background:linear-gradient(180deg,rgba(0,0,0,0.40),rgba(240,245,255,0.40)),url(projelerim.jpg) center center/cover no-repeat;z-index:8;box-shadow:0px 0px 15px 1px #444}
 .projelerim h1 {display:block;width:100%;text-align:center;font:bold small-caps 450% Impact;padding:0;margin:10px 0;color:gold;-webkit-filter: drop-shadow(0px 3px 3px #333);filter: drop-shadow(0px 3px 3px #333)}
 .projediv {overflow:hidden;width:32%;border-radius:8px;margin:20px 0;padding:0px 0px 30px 0px;box-sizing:border-box;background:rgba(255,255,255,0.95);box-shadow:0px 2px 4px 1px #666}
 .projediv h2 {font:bold small-caps 190% Impact;padding:0 20px;box-sizing:border-box;margin:5px 0;color:gold;-webkit-filter: drop-shadow(0px 2px 2px rgb(88,88,160));filter: drop-shadow(0px 2px 2px rgb(88,88,160))}
@@ -396,8 +396,6 @@ footer h2 {font:small-caps 200% Impact;margin:20px 0}
 .ustlogo {left:8%}
 
 .ustara {grid-template-columns:50% 50%;}
-.ustara:before {content:"";display:none}
-.ustara:after {content:"";display:none}
 .ustara > div {margin:0px 0px;padding:0px 0px}
 .ustara>h1{grid-area:1/1/span 1/span 2;}
 .ustara>div:nth-child(3) div{grid-column-start: 1;grid-row-start: 3;}
@@ -407,8 +405,6 @@ footer h2 {font:small-caps 200% Impact;margin:20px 0}
 .ara div:nth-child(1){width:90%;margin:50px 5%}
 
 .araiki {flex-direction:column;margin:0px 0px;padding:20px 7.5%}
-.araiki:before {content:"";display:none}
-.araiki:after {content:"";display:none}
 .araiki div{width:90%;margin:50px 5%}
 
 footer {display:grid;grid-template-columns: 80%;justify-content:center;grid-gap:50px 0px;}
