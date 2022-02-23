@@ -227,8 +227,9 @@ document.getElementsByClassName("slayt")[0].classList.toggle("slaytekle");
 </div>
 </div>
 <script> 
-var rs = document.querySelectorAll(".ustara:nth-child(1) img"); 
-var resimurl = ["https://sametakyel.github.io/samet_akyel_insb.jpg","https://sametakyel.github.io/samet_akyel_insi.jpg","https://sametakyel.github.io/samet_akyel_insu.jpg","https://sametakyel.github.io/samet_akyel_insd.jpg","https://sametakyel.github.io/samet_akyel_insbes.jpg","https://sametakyel.github.io/samet_akyel_insa.jpg"];
+var rs = document.querySelectorAll(".ustara:nth-child(1) img");
+var resimurl = [];
+for(var i=0;i<rs.length;i++){resimurl.push(rs[i].src)}
 setInterval(function(){ 
 let arr = [];
 do {
@@ -238,12 +239,7 @@ do {
     return arr.indexOf(item) === index
   });
 } while (arr.length < 6);
-rs[0].src = resimurl[arr[0]];
-rs[1].src = resimurl[arr[1]];
-rs[2].src = resimurl[arr[2]];
-rs[3].src = resimurl[arr[3]];
-rs[4].src = resimurl[arr[4]];
-rs[5].src = resimurl[arr[5]];
+for(var i=0;i<rs.length;i++){rs[i].src = resimurl[arr[i]]}
 },3500);
 </script>
 
