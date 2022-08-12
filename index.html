@@ -53,463 +53,392 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="initial-scale=0.68,width=device-width,user-scalable=0" />
 <link rel="icon" type="image/png" href="samet_akyel.ico">
-<link rel="stylesheet" href="https://sametakyel.github.io/sakystil.css">
-<script type="text/javascript">
-window.addEventListener("scroll", function(){
-kaydirnavbar();
-gelincegoster();
-})
-function kaydirnavbar() {
-var navbar = document.getElementById("navbarim");
-var ustmenum = document.getElementById("ustmenum");
-  if (document.body.scrollTop > 250 || document.documentElement.scrollTop > 250){
-	navbar.classList.add("navbarac");
-	ustmenum.classList.add("ustmenuac");
-  } else {
-	navbar.classList.remove("navbarac");
+<style>
+body {position:relative;margin:0;padding:0;background:#fff;transition:0.5s all}
+.tumsayfa {transition:0.5s all}
+.mobilmenu {position:fixed;width:50%;height:100%;margin-left:50%;background:#000;display:flex;justify-content:flex-end}
+.body {background:#fff;overflow:hidden;height:90vh;border-radius:25px;transition:0.5s all;transform:translate(-50%,5%);box-shadow: rgba(0, 0, 0, 0.5) 0px 20px 25px -5px, rgba(0, 0, 0, 0.74) 0px 10px 10px -5px}
+header {width:100%;display:flex}
+aside {float:left;position:relative;width:25%;height:100vh;margin:0;padding:50px 0;box-sizing:border-box;background:#1A2430;display:flex;justify-content:flex-start;align-items:center;flex-direction:column}
+aside > img {border:6px solid #777;margin:15px 0}
+aside img {border-radius:50%}
+aside h2 {text-align:center;margin:0;width:100%;color:#fff;text-shadow:1px 5px #000;font-size:1.5rem;font-weight:bold;font-family:Arial;letter-spacing:-1px}
+aside a {text-decoration:none}
+aside ul {width:80%;margin:0;padding:0;list-style-type:none}
+aside ul li {color:#ddd;padding:20px 10px;box-sizing:border-box}
+aside ul li:hover {color:#fff}
+aside div {margin:15px 0 20px 0;width:70%;color:#bbb;display:flex;justify-content:space-around}
+aside div >a path {fill:#aaa}
+aside div >a:hover path{fill:#fff}
 
-  }
+.mobilmenu {display:none}
+.mobilmenu aside {position:relative;width:100%;height:100vh;margin:0;padding:50px 0;margin-left:0%;box-sizing:border-box;background:#fff;display:flex;justify-content:flex-start;align-items:center;flex-direction:column}
+.mobilmenu aside > img {border:6px solid #777;margin:15px 0}
+.mobilmenu aside img {border-radius:50%}
+.mobilmenu aside h2 {text-align:center;margin:0;width:100%;color:#000;text-shadow:0px 0px #000;font-size:1.5rem;font-weight:bold;font-family:Arial;letter-spacing:-1px}
+.mobilmenu aside a {text-decoration:none}
+.mobilmenu aside div >a path {fill:#aaa}
+.mobilmenu aside div >a:hover path{fill:#000}
+.header {background:#fff;float:right;animation:sagasola 10s ease-in-out infinite;position:relative;object-fit:cover;width:75%;height:100vh;background:linear-gradient(75deg,rgba(0,0,0,0.85),rgba(0,0,0,0.05)),url("https://sametakyel.github.io/samet_akyel_insu.jpg");background-size:cover;background-position:center;display:flex;justify-content:flex-start;align-items:center;padding:0 5%;box-sizing:border-box;flex-wrap:wrap}
+@keyframes sagasola {
+0% {background-position:top}
+50% {background-position:bottom}
+100% {background-position:top}
 }
-function gelincegoster(){
-var seviye = window.scrollY;
-var nesneY = document.getElementsByClassName("kaydir");
-for(i=0;i<nesneY.length;i++){
-if(seviye > nesneY[i].offsetTop - window.innerHeight){
-	nesneY[i].classList.add("kaydirekle");
-	} else {
-	nesneY[i].classList.remove("kaydirekle");
-} }
+#bendeniz{display:flex;flex-direction:column;margin-top:150px}
+.header h1 {width:100%;margin:0;color:#fff;text-shadow:1px 5px #000;font-size:4rem;font-weight:bold;font-family:Arial;letter-spacing:-5px}
+.header span {margin-left:5px;font-size:1.25rem;text-shadow:1px 5px #000;color:orange;font-weight:bold;display:block}
+.header label {position:absolute;padding:5px;box-sizing:border-box;margin-top:7rem;color:#ddd;font-size:1.55rem}
+[data-yazi] div {border-right:2px solid #eee;padding-right:3px}
+#mobilmenuac {display:none}
+.giris {z-index:99999;position:fixed;left:0;top:0;width:100vw;height:100vh;animation:giris;animation-fill-mode:ease-in-out;animation-duration:2s}
+.cikis {z-index:99999;position:fixed;left:0;top:0;width:100vw;height:100vh;animation:cikis;animation-fill-mode:ease-in-out;animation-duration:2s}
+@keyframes giris{
+  100% {clip-path: circle(75%);}
+  0% { clip-path: circle(0%)}
 }
-var tumtagler = document.querySelectorAll("body *:not(#onyukleme)");
+@keyframes cikis{
+  0% { clip-path: circle(75%); }
+  100% { clip-path: circle(0%); }
+}
+nav {width:100%;background:#fff;margin:0px 0}
+nav > div {display:flex;overflow:hidden;overflow-x:auto;scroll-snap-type: x mandatory;justify-content:flex-start}
+nav > div div {transition:0.25s all;cursor:pointer;padding:16px 24px;scroll-snap-align: center;flex:none;background:#1A2430;border-radius:50px;margin:25px 15px;box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;display:flex;justify-content:center;align-items:center;color:#ddd;font:bold 1.75rem Arial}
+nav > div div:hover {background:red;color:#fff;margin:15px 15px}
+section {width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start;padding:0 5%;box-sizing:border-box;background:#fff}
+section > label {font:18px Arial;letter-spacing:0px;margin:25px 0;padding:0;color:#222}
+section h2 {position:relative;width:100%;color:#333;font:bold 2.5rem Arial;letter-spacing:-1px;margin:15px 0 0 0;padding:0}
+section h2:after{content:"";position:absolute;width:218px;height:5px;background:red;margin-top:45px;left:0}
+section h3 {position:relative;width:100%;color:#333;font:bold 1.75rem Arial;letter-spacing:-1px;margin:35px 0}
+section>h2,section>label {display:block;width:100%;box-sizing:border-box}
+section h4 {display:block;width:100%;margin:0 0 10px 0;padding:0;font:bold 1.5rem Arial}
+section article {position:relative;display:inline-block;width:33%;margin:0;padding:0px 0 20px 18px;box-sizing:border-box;border-left:2px solid #000}
+section article:after {content:"";position:absolute;background:#fff;border:2px solid #000;width:16px;height:16px;border-radius:50%;left:-11px;top:3px}
+section article span {color:#333;display:block;margin:10px 0}
+#hakkimda img {object-fit:cover;padding:20px 0;box-sizing:border-box;height:50vh;width:30%;border-top-right-radius: 30%;border-bottom-right-radius: 30%}
+#hakkimda > div {position:relative;width:70%;padding:0 5%;box-sizing:border-box}
+#hakkimda > div:after{content:"";position:absolute;width:240px;height:240px;background:rgba(0,0,0,0.1);left:30%;top:20%;transform:rotate(45deg)}
+#hakkimda div > label {display:block;margin:20px 0}
+#hakkimda ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+#hakkimda ul li {position:relative;width:25%;margin:15px 15px 15px 0;padding:0 0 5px 24px;box-sizing:border-box;font-size:20px;font-family:Arial;letter-spacing:-1px;display:flex;flex-direction:Column}
+#hakkimda ul li:before{content:"";position: absolute;border-right:2px solid black;border-bottom:2px solid black;width:10px;height:10px;left:0;top:10px;transform: translateY(-50%) rotate(-45deg)}
+#hakkimda ul + label {font:18px Arial;letter-spacing:2px;margin:25px 0;padding:0;color:#222}
+#ozgecmis span {display:block;width:100%;}
+
+.kutular {width: 100%;padding:25px 5%;position: relative;box-sizing:border-box}
+.kutular>div {overflow:auto;overflow-y:hidden;width:100%;height:320px;display:flex;padding:5px;box-sizing:border-box}
+.kutular>div div {transition:0.2s all;cursor:pointer;font:bold 16px Arial;border-radius:15px;box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.45) 0px 4px 6px -2px;min-width: 300px;height: 280px;display: flex;  justify-content: space-around;align-items: center;flex-direction:column;float: left; margin-right:25px;}
+.kutular>div div:hover {box-shadow: rgba(0, 0, 0, 0.5) 0px 10px 15px -3px, rgba(0, 0, 0, 0.75) 0px 4px 6px -2px;margin-top:-15px}
+.kutular a {text-decoration:none;color:#000}
+.oyunkutu:nth-child(1){background:url("storyoyun.png") center/cover}
+.oyunkutu:nth-child(2){background:url("kosuoyun.png") center/cover}
+.oyunkutu:nth-child(3){background:url("laboyun.png") center/cover} 
+footer {z-index:-1;width:100%;padding:35px 5%;box-sizing:border-box;background:#1A2430;display:flex;align-items:center;justify-content:space-between}
+footer a {color:#fff;text-decoration:none;font:1.25rem Arial;letter-spacing:1px}
+footer a:hover {color:red}
+#izleme {position:fixed;width:100vw;overflow:hidden;left:0;top:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;transition:1s all}
+#izleme button {position:absolute;right:50px;top:25px}
+#izleme iframe {height:80%;border:0;overflow:hidden;transition:0.5s all}
+.iframefekto {visibility:hidden;width:0%;transition:0.5s all}
+.iframefekt {visibility:visible;width:90%;transition:0.5s all}
+.kapali {height:0;visibility:hidden;z-index:-1}
+.acik {height:100vh;visibility:visible;z-index:9999}
+#gulsah {position:absolute;display:flex;justify-content:flex-end;width:100%;position:relative;padding:0 2.5%;margin-top:-25px;box-sizing:border-box}
+#sah{position:absolute;z-index:1;transition:0.5s all}
+#gul {position:absolute;z-index:99}
+#gul:hover + #sah{visibility:visible;margin-top:-30px;z-index:100}
+
+#onyukleme {z-index:99999;position:fixed;background:#f4f4f4;width:100%;height:100%;margin:0;padding:0}
+#onyukleme div{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:160px;height:160px;background:url(http://sametakyel.github.io/kafam2.png);background-size:100% 100%;background-repeat:no-repeat;border-radius:50%;animation:yukleniyor 3s infinite linear;}
+#onyukleme div>span {display:block;margin:170px 25px;line-height:450px;font:small-caps 180% Impact;color:tomato}
+@keyframes yukleniyor{
+0% {filter:grayscale(0%);transition:1s all}
+50% {filter:grayscale(100%);transition:1s all}
+100% {filter:grayscale(0%);transition:1s all}
+}
+@media only screen and (max-width: 800px) {
+	@keyframes sagasola {
+	0% {background-position:left}
+	50% {background-position:center}
+	100% {background-position:left}
+	}
+	#hakkimda ul li {width:45%}
+	#hakkimda {justify-content:center}
+	#hakkimda img {width:100%;height:380px;border-top-right-radius:0%;border-bottom-right-radius:0%;border-bottom-left-radius:50%;border-bottom-right-radius:50%;margin-left:0%}
+	#hakkimda > div {width:100%;padding:0}
+	section article {width:50%}
+	aside {display:none;position:absolute;right;0}
+	#mobilmenuac {cursor:pointer;z-index:9999;position:absolute;display:block;right:2.5%;top:10px;width:40px;height:40px}
+	#mobilicon {border-radius:25px;z-index:9999;position:absolute;display:block;right:0%;top:15px;width:30px;height:5px;background:#fff}
+	#mobilicon:after {content:"";border-radius:25px;z-index:9999;position:absolute;display:block;right:0%;top:10px;width:20px;height:5px;background:#fff}
+	#mobilicon:before {content:"";border-radius:25px;z-index:9999;position:absolute;display:block;right:0%;top:20px;width:10px;height:5px;background:#fff}
+	
+	.header {width:100%;height:80vh;border-bottom-right-radius:80px;box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px}
+	.header h1 {font-size:2.75rem}
+	nav > div {justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+<!-- ON YUKLEME -->
+<div id="onyukleme">
+<div><span>Yükleniyor</span></div>
+</div>
+<div class="mobilmenu">
+<aside>
+	<img src="https://sametakyel.github.io/ben.jpg" width="180" height="180"/>
+	<h2>SAMET AKYEL</h2>
+	<div class="sosyalmedya">
+	<a href="https://facebook.com/thesametakyel">
+	<svg viewBox="0 0 20 20" width="32" height="32">
+	<path  d="M10,0.5c-5.247,0-9.5,4.253-9.5,9.5c0,5.247,4.253,9.5,9.5,9.5c5.247,0,9.5-4.253,9.5-9.5C19.5,4.753,15.247,0.5,10,0.5 M10,18.637c-4.77,0-8.636-3.867-8.636-8.637S5.23,1.364,10,1.364S18.637,5.23,18.637,10S14.77,18.637,10,18.637 M10.858,7.949c0-0.349,0.036-0.536,0.573-0.536h0.719v-1.3H11c-1.38,0-1.866,0.65-1.866,1.743v0.845h-0.86V10h0.86v3.887h1.723V10h1.149l0.152-1.299h-1.302L10.858,7.949z"></path>
+	</svg>
+	</a>
+	<a href="https://twitter.com/sametakyel">
+	<svg viewBox="0 0 20 20" width="32" height="32">
+	<path  d="M14.467,6.707c-0.34,0.198-0.715,0.342-1.115,0.419c-0.318-0.335-0.775-0.545-1.279-0.545c-0.969,0-1.754,0.773-1.754,1.727c0,0.135,0.015,0.267,0.045,0.394C8.905,8.628,7.612,7.94,6.747,6.896C6.596,7.151,6.509,7.448,6.509,7.764c0,0.599,0.31,1.128,0.78,1.438C7.002,9.192,6.732,9.115,6.495,8.985c0,0.007,0,0.014,0,0.021c0,0.837,0.605,1.535,1.408,1.694c-0.147,0.04-0.302,0.06-0.462,0.06c-0.113,0-0.223-0.011-0.33-0.031c0.223,0.687,0.871,1.186,1.638,1.199c-0.6,0.464-1.356,0.739-2.179,0.739c-0.142,0-0.281-0.007-0.418-0.023c0.777,0.489,1.699,0.775,2.689,0.775c3.228,0,4.991-2.63,4.991-4.913c0-0.075-0.002-0.149-0.004-0.223c0.342-0.244,0.639-0.547,0.875-0.894c-0.316,0.137-0.652,0.23-1.008,0.272C14.057,7.448,14.336,7.11,14.467,6.707 M10,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.196,0,9.407-4.211,9.407-9.406C19.406,4.805,15.195,0.594,10,0.594 M10,18.552c-4.723,0-8.551-3.829-8.551-8.552S5.277,1.449,10,1.449c4.723,0,8.551,3.829,8.551,8.551S14.723,18.552,10,18.552"></path>
+	</svg>
+	</a>
+	<a href="https://instagram.com/sametakyel">
+	<svg width="32" height="32" viewBox="0 0 20 20">
+	<path d="M9.969,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.195,0,9.406-4.211,9.406-9.406C19.375,4.805,15.164,0.594,9.969,0.594 M9.969,18.552c-4.723,0-8.551-3.829-8.551-8.552s3.829-8.551,8.551-8.551S18.521,5.277,18.521,10S14.691,18.552,9.969,18.552 M12.534,5.724H7.403c-0.944,0-1.71,0.766-1.71,1.71v5.131c0,0.944,0.766,1.71,1.71,1.71h5.131c0.944,0,1.71-0.766,1.71-1.71V7.435C14.244,6.49,13.479,5.724,12.534,5.724M11.679,7.007h1.283V8.29h-1.283V7.007z M9.969,8.29c0.944,0,1.71,0.766,1.71,1.71s-0.766,1.71-1.71,1.71s-1.71-0.766-1.71-1.71S9.024,8.29,9.969,8.29 M13.39,12.565c0,0.472-0.384,0.854-0.855,0.854H7.403c-0.472,0-0.855-0.383-0.855-0.854V9.573h0.898C7.423,9.712,7.403,9.854,7.403,10c0,1.417,1.149,2.565,2.565,2.565c1.416,0,2.565-1.148,2.565-2.565c0-0.146-0.02-0.288-0.043-0.427h0.898V12.565z"></path>
+	</svg>
+	</a>
+	<a href="https://www.linkedin.com/in/sametakyel/">
+	<svg width="32" height="32" viewBox="0 0 25 25">
+	<path d="M 11.665 0.511 a 1 1 0 0 0 -0.059 23.268 A 1 1 0 0 0 11.783 0.57 z z z M 8 19 H 5 v -9 h 3 z M 6.5 8.25 A 1.75 1.75 0 1 1 8.3 6.5 a 1.78 1.78 0 0 1 -1.8 1.75 z M 19 19 h -3 v -4.74 c 0 -1.42 -0.6 -1.93 -1.38 -1.93 A 1.74 1.74 0 0 0 13 14.19 a 0.66 0.66 0 0 0 0 0.14 V 19 h -3 v -9 h 2.9 v 1.3 a 3.11 3.11 0 0 1 2.7 -1.4 c 1.55 0 3.36 0.86 3.36 3.66 z"></path>
+	</svg>
+	</a>
+	</div>
+   </aside>
+</div>
+   <div id="mobilmenuac"><div id="mobilicon"></div></div>
+<div class="tumsayfa">
+	<div id="izleme" class="kapali">
+	<button id="izlemekpt">KAPAT</button>
+	<iframe src="" scrolling="no" border="0" class="iframefekto"></iframe>
+	</div>
+   <header>
+   <aside>
+	<img src="https://sametakyel.github.io/ben.jpg" width="180" height="180"/>
+	<h2>SAMET AKYEL</h2>
+	<div class="sosyalmedya">
+	<a href="">
+	<svg viewBox="0 0 20 20" width="32" height="32">
+	<path  d="M10,0.5c-5.247,0-9.5,4.253-9.5,9.5c0,5.247,4.253,9.5,9.5,9.5c5.247,0,9.5-4.253,9.5-9.5C19.5,4.753,15.247,0.5,10,0.5 M10,18.637c-4.77,0-8.636-3.867-8.636-8.637S5.23,1.364,10,1.364S18.637,5.23,18.637,10S14.77,18.637,10,18.637 M10.858,7.949c0-0.349,0.036-0.536,0.573-0.536h0.719v-1.3H11c-1.38,0-1.866,0.65-1.866,1.743v0.845h-0.86V10h0.86v3.887h1.723V10h1.149l0.152-1.299h-1.302L10.858,7.949z"></path>
+	</svg>
+	</a>
+	<a href="">
+	<svg viewBox="0 0 20 20" width="32" height="32">
+	<path  d="M14.467,6.707c-0.34,0.198-0.715,0.342-1.115,0.419c-0.318-0.335-0.775-0.545-1.279-0.545c-0.969,0-1.754,0.773-1.754,1.727c0,0.135,0.015,0.267,0.045,0.394C8.905,8.628,7.612,7.94,6.747,6.896C6.596,7.151,6.509,7.448,6.509,7.764c0,0.599,0.31,1.128,0.78,1.438C7.002,9.192,6.732,9.115,6.495,8.985c0,0.007,0,0.014,0,0.021c0,0.837,0.605,1.535,1.408,1.694c-0.147,0.04-0.302,0.06-0.462,0.06c-0.113,0-0.223-0.011-0.33-0.031c0.223,0.687,0.871,1.186,1.638,1.199c-0.6,0.464-1.356,0.739-2.179,0.739c-0.142,0-0.281-0.007-0.418-0.023c0.777,0.489,1.699,0.775,2.689,0.775c3.228,0,4.991-2.63,4.991-4.913c0-0.075-0.002-0.149-0.004-0.223c0.342-0.244,0.639-0.547,0.875-0.894c-0.316,0.137-0.652,0.23-1.008,0.272C14.057,7.448,14.336,7.11,14.467,6.707 M10,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.196,0,9.407-4.211,9.407-9.406C19.406,4.805,15.195,0.594,10,0.594 M10,18.552c-4.723,0-8.551-3.829-8.551-8.552S5.277,1.449,10,1.449c4.723,0,8.551,3.829,8.551,8.551S14.723,18.552,10,18.552"></path>
+	</svg>
+	</a>
+	<a href="">
+	<svg width="32" height="32" viewBox="0 0 20 20">
+	<path d="M9.969,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.195,0,9.406-4.211,9.406-9.406C19.375,4.805,15.164,0.594,9.969,0.594 M9.969,18.552c-4.723,0-8.551-3.829-8.551-8.552s3.829-8.551,8.551-8.551S18.521,5.277,18.521,10S14.691,18.552,9.969,18.552 M12.534,5.724H7.403c-0.944,0-1.71,0.766-1.71,1.71v5.131c0,0.944,0.766,1.71,1.71,1.71h5.131c0.944,0,1.71-0.766,1.71-1.71V7.435C14.244,6.49,13.479,5.724,12.534,5.724M11.679,7.007h1.283V8.29h-1.283V7.007z M9.969,8.29c0.944,0,1.71,0.766,1.71,1.71s-0.766,1.71-1.71,1.71s-1.71-0.766-1.71-1.71S9.024,8.29,9.969,8.29 M13.39,12.565c0,0.472-0.384,0.854-0.855,0.854H7.403c-0.472,0-0.855-0.383-0.855-0.854V9.573h0.898C7.423,9.712,7.403,9.854,7.403,10c0,1.417,1.149,2.565,2.565,2.565c1.416,0,2.565-1.148,2.565-2.565c0-0.146-0.02-0.288-0.043-0.427h0.898V12.565z"></path>
+	</svg>
+	</a>
+	<a href="">
+	<svg width="32" height="32" viewBox="0 0 25 25">
+	<path d="M 11.665 0.511 a 1 1 0 0 0 -0.059 23.268 A 1 1 0 0 0 11.783 0.57 z z z M 8 19 H 5 v -9 h 3 z M 6.5 8.25 A 1.75 1.75 0 1 1 8.3 6.5 a 1.78 1.78 0 0 1 -1.8 1.75 z M 19 19 h -3 v -4.74 c 0 -1.42 -0.6 -1.93 -1.38 -1.93 A 1.74 1.74 0 0 0 13 14.19 a 0.66 0.66 0 0 0 0 0.14 V 19 h -3 v -9 h 2.9 v 1.3 a 3.11 3.11 0 0 1 2.7 -1.4 c 1.55 0 3.36 0.86 3.36 3.66 z"></path>
+	</svg>
+	</a>
+	</div>
+	<ul>
+	<a href="#hakkimda"><li>Hakkımda</li></a>
+	<a href="#ozgecmis"><li>Özgeçmiş</li></a>
+	<a href="#projeler"><li>Projelerim</li></a>
+	<a href="#iletisim"><li>İletişim</li></a>
+	</ul>
+   </aside>
+   <div class="header">
+   <div id="bendeniz">
+   <span>MERHABA, BEN</span>
+   <h1>SAMET AKYEL</h1>
+   <label data-yazi="WEB TASARIM,WEB GELİŞTİRİCİ,VERİ ANALİSTİ"><div></div></label>
+   </div>
+   <div id="gulsah">
+   <img id="gul" src="https://www.seekpng.com/png/full/8-83262_red-rose-png-transparent-image-red-roses-clipart.png" width="64"/>
+   <img id="sah" src="https://i.pinimg.com/originals/39/1a/96/391a964218aa5d42228201804286641c.png" width="64"/>
+   </div>
+   </div>
+   </header>
+   <nav>
+   <div>
+	<div>HTML</div>
+	<div>CSS</div>
+	<div>JAVASCRIPT</div>
+	<div>REACTJS</div>
+	<div>PHP</div>
+	<div>MYSQL</div>
+	<div>WORDPRESS</div>
+	<div>ADSENSE</div>
+	<div>ADWORDS</div>
+	<div>PHOTOSHOP</div>
+	<div>IIS</div>
+   </div>
+   </nav>
+   <section id="hakkimda">
+   <h2>HAKKIMDA</h2>
+   <img src="https://sametakyel.github.io/ben.jpg" />
+   <div>
+   <h3>WEB TASARIM & GELİŞTİRİCİ</h3>
+   <ul>
+   <li><strong>MEMLEKETİM</strong><span>ÇORUM</span></li>
+   <li><strong>YAŞ </strong><span>29</span></li>
+   <li><strong>YAŞADIĞIM YER </strong><span>@TEKİRDAĞ</span></li>
+   <li><strong>MESLEK </strong><span>MÜHENDİS</span></li>
+   <li><strong>ÜNİVERSİTE </strong><span>19 Mayıs Üniversitesi</span></li>
+   <li><strong>YETKİNLİK </strong><span>İSG ÇEVRE</span></li>
+   </ul>
+   <label>Bir Çevre Mühendisi ve B Sınıfı İSG Uzmanı olarak 10 yılı aşkın süredir Web Tasarım ve Programlama işleri ile uğraşmaktayım.</label>
+   </div>
+   </section>
+   <section id="ozgecmis">
+   <h2>ÖZGEÇMİŞ</h2>
+   <label>Eğitimden Sertifikalara Üniversiteden Çalışma Hayatıma Özgeçmişim..</label>
+   <article>
+   <h4>EĞİTİM</h4>
+   <span>Çevre Mühendisliği</span>
+   <span>İSG Uzmanlığı</span>
+   <span>Elektronik Teknolojisi</span>
+   </article>
+   <article>
+   <h4>SERTİFİKALAR</h4>
+   <span>B Sınıfı İSG Belgesi</span>
+   <span>Çevre Görevlisi</span>
+   </article>
+   <article>
+   <h4>BECERİLER</h4>
+   <span>WEB TASARIM</span>
+   <span>PHOTOSHOP</span>
+   <span>NETWORK</span>
+   <span>LOCAL PROGRAMMING</span>
+   </article>
+   <article>
+   <h4>İŞ DENEYİMİ</h4>
+   <span>Çevre Mühendisi</span>
+   <span>Sevkiyat & Satın Alım</span>
+   <span>Zenginleştirme Tesis Mühendisi</span>
+   <span>Linyit Kömür Analizi</span>
+   </article>
+   <article>
+   <h4>KURSLAR</h4>
+   <span>Sistem Ağ ve Güvenliği</span>
+   <span>Makine Öğrenimi</span>
+   <span>E Ticaret</span>
+   </article>
+   <article>
+   <h4>HOBİLER</h4>
+   <span>Langırt</span>
+   <span>Basketbol</span>
+   <span>Sahil Voleybolu</span>
+   </article>
+   </section>
+   <section id="projeler" class="kutular">
+   <h2>PROJELER</h2>
+   <label>Oyun Çalışmalarım</label>
+   <div>
+	<div class="oyunkutu" data-oyun="storyoyun.html"></div>
+	<div class="oyunkutu" data-oyun="kosuoyun.html"></div>
+	<div class="oyunkutu" data-oyun="laboyun.html"></div>
+   </div>
+   <label>Web Tasarım Projelerim</label>
+   <div>
+	<div data-oyun="https://cevremuh.com"><img src="https://cevremuh.com/cevremuh_ico.png" widtth="180"/></div>
+	<div data-oyun="https://ozgetanirgungoren.com/"><img src="https://ozgetanirgungoren.com/ozgetanir.png" width="180"/></div>
+   </div>
+   </section>
+   <section id="sosyal" class="kutular">
+   <h2>SOSYAL MEDYA HESAPLARIM</h2>
+   <label>Facebook Instagram Twitter Linkedin hesaplarımdan bana ulaşabilirsiniz.</label>
+   <div>
+	<a href="https://facebook.com/thesametakyel"><div>
+	<svg viewBox="0 0 20 20" width="160" height="160">
+	<path d="M 10 0.5 M 10.858 7.949 c 0 -0.349 0.036 -0.536 0.573 -0.536 h 0.719 v -1.3 H 11 c -1.38 0 -1.866 0.65 -1.866 1.743 v 0.845 h -0.86 V 10 h 0.86 v 3.887 h 1.723 V 10 h 1.149 l 0.152 -1.299 h -1.302 L 10.858 7.949 z"></path>
+	</svg>
+	/thesametakyel
+	</div></a>
+	<a href="https://instagram.com/sametakyel"><div>
+	<svg width="160" height="160" viewBox="0 0 20 20">
+	<path d="M 9.969 0.594 M 12.534 5.724 H 7.403 c -0.944 0 -1.71 0.766 -1.71 1.71 v 5.131 c 0 0.944 0.766 1.71 1.71 1.71 h 5.131 c 0.944 0 1.71 -0.766 1.71 -1.71 V 7.435 C 14.244 6.49 13.479 5.724 12.534 5.724 M 11.679 7.007 h 1.283 V 8.29 h -1.283 V 7.007 z M 9.969 8.29 c 0.944 0 1.71 0.766 1.71 1.71 s -0.766 1.71 -1.71 1.71 s -1.71 -0.766 -1.71 -1.71 S 9.024 8.29 9.969 8.29 M 13.39 12.565 c 0 0.472 -0.384 0.854 -0.855 0.854 H 7.403 c -0.472 0 -0.855 -0.383 -0.855 -0.854 V 9.573 h 0.898 C 7.423 9.712 7.403 9.854 7.403 10 c 0 1.417 1.149 2.565 2.565 2.565 c 1.416 0 2.565 -1.148 2.565 -2.565 c 0 -0.146 -0.02 -0.288 -0.043 -0.427 h 0.898 V 12.565 z"></path>
+	</svg>
+	/sametakyel
+	</div></a>
+	<a href="https://twitter.com/sametakyel"><div>
+	<svg viewBox="0 0 20 20" width="160" height="160">
+	<path d="M 14.467 6.707 c -0.34 0.198 -0.715 0.342 -1.115 0.419 c -0.318 -0.335 -0.775 -0.545 -1.279 -0.545 c -0.969 0 -1.754 0.773 -1.754 1.727 c 0 0.135 0.015 0.267 0.045 0.394 C 8.905 8.628 7.612 7.94 6.747 6.896 C 6.596 7.151 6.509 7.448 6.509 7.764 c 0 0.599 0.31 1.128 0.78 1.438 C 7.002 9.192 6.732 9.115 6.495 8.985 c 0 0.007 0 0.014 0 0.021 c 0 0.837 0.605 1.535 1.408 1.694 c -0.147 0.04 -0.302 0.06 -0.462 0.06 c -0.113 0 -0.223 -0.011 -0.33 -0.031 c 0.223 0.687 0.871 1.186 1.638 1.199 c -0.6 0.464 -1.356 0.739 -2.179 0.739 c -0.142 0 -0.281 -0.007 -0.418 -0.023 c 0.777 0.489 1.699 0.775 2.689 0.775 c 3.228 0 4.991 -2.63 4.991 -4.913 c 0 -0.075 -0.002 -0.149 -0.004 -0.223 c 0.342 -0.244 0.639 -0.547 0.875 -0.894 c -0.316 0.137 -0.652 0.23 -1.008 0.272 C 14.057 7.448 14.336 7.11 14.467 6.707"></path>
+	</svg>
+	/sametakyel
+	</div></a>
+	<a href="https://www.linkedin.com/in/sametakyel/"><div>
+	<div>
+	<svg width="160" height="160" viewBox="0 0 25 25">
+	<path d="M 11.665 0.511 a 1 1 0 0 0 -0.059 23.268 A 1 1 0 0 0 11.783 0.57 z z z M 8 19 H 5 v -9 h 3 z M 6.5 8.25 A 1.75 1.75 0 1 1 8.3 6.5 a 1.78 1.78 0 0 1 -1.8 1.75 z M 19 19 h -3 v -4.74 c 0 -1.42 -0.6 -1.93 -1.38 -1.93 A 1.74 1.74 0 0 0 13 14.19 a 0.66 0.66 0 0 0 0 0.14 V 19 h -3 v -9 h 2.9 v 1.3 a 3.11 3.11 0 0 1 2.7 -1.4 c 1.55 0 3.36 0.86 3.36 3.66 z"></path>
+	</svg>
+	/samet-akyel
+	</div></a>
+   </div>
+   </section>
+   <footer>
+   <a href="mailto:sametakyel@outlook.com.tr">sametakyel@outlook.com.tr</a>
+   <img src="https://sametakyel.github.io/kafam2.png" width="72" height="72">
+   </footer>
+</div>
+</body>   
+<!-- Geçiş -->
+<script>
 document.onreadystatechange = () => {
   if (document.readyState === 'complete') {
     document.getElementById("onyukleme").style.display = "none";
-    for(i=0;i<tumtagler.length;i++){
-    tumtagler[i].style.animationPlayState = "running";
-    }
   } else {
     document.getElementById("onyukleme").style.display = "block";
-    for(i=0;i<tumtagler.length;i++){
-    tumtagler[i].style.animationPlayState = "paused";
-    }
   }
-};
-</script>
- </head> 
- <body> 
-
-<div id="onyukleme"><!-- ON YUKLEME -->
-<div><span>Yükleniyor</span></div>
-</div>
-<div class="ben"></div>
-
-<div class="sayfa"><!-- TUM SAYFA -->
-<div class="soltaraf"><!-- SAYFA SOLU -->
-<details>
-<summary>SAMET AKYEL</summary>
-<a href="https://sametakyel.github.io/" alt="Samet Akyel Kimdir">Çevre Mühendisi & Görevlisi</a>
-<a href="https://sametakyel.github.io/" alt="Samet Akyel Kimdir">B Sınıfı İSG Uzmanı</a>
-<a href="https://sametakyel.github.io/" alt="Samet Akyel Kimdir">Web Geliştirici</a>
-</details>
-<details>
-<summary>PROJELER</summary>
-<a href="https://cevremuh.com" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Cevremuh</a>
-<a href="https://ozgetanirgungoren.com/" alt="Özge Tanır Güngöre Özel Eğitim">Özge Tanır Güngöre Özel Eğitim</a>
-<a href="https://mertakinakcay.com/" alt="Mert Akın Akçay">Mert Akın AKÇAY</a>
-</details>
-
-<details>
-<summary>SOSYAL MEDYA</summary>
-<a href="https://facebook.com/thesametakyel" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Facebook</a>
-<a href="https://instagram.com/sametakyel" alt="Trakya Haber Sitesi">Instagram</a>
-<a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter Hesabı">Twitter</a>
-<a href="https://www.linkedin.com/in/sametakyel/" alt="Samet Akyel Linkedin Hesabı">Linkedin</a>
-</details>
-
-<script>
-const detaylar = document.querySelectorAll("details");
-function detaycheck() {
-  let detayacik = document.querySelectorAll("details[open]");
-  for (const dt of detayacik) {
-    if (this != dt) {
-      dt.removeAttribute("open");
-    }
   }
-}
-detaylar.forEach(function (dt) {
-  dt.addEventListener("click", detaycheck);
-});
-</script>
-
-<input type="checkbox" id="yangizle"/>
-<label for="yangizle" id="yangizleyen" class="yanbuton"></label>
-<script type="text/javascript">
-var gizleyen = document.getElementById("yangizleyen");
-gizleyen.onclick = function(){gizlesin()};
-function gizlesin(){
-document.getElementsByClassName("yanbuton")[0].classList.toggle("yangizleyenekle");
-document.getElementsByClassName("soltaraf")[0].classList.toggle("soltarafekle");
-document.getElementsByClassName("sagtaraf")[0].classList.toggle("sagtarafekle");
-document.getElementsByClassName("ustlogo")[0].classList.toggle("ustlogoekle");
-document.getElementsByClassName("slayt")[0].classList.toggle("slaytekle");
-}
-</script>
-</div>
-
-<div class="sagtaraf"><!-- SAYFA SAGI -->
-<nav class="navbarim" id="navbarim"> <!-- NAVBAR SABIT -->
-<div class="sagmenu">
-<img class="ustlogo" src="ustlogo.png"/>
-<input id="menuac" type="checkbox"/>
-<label for="menuac" id="menuyuac">
-<span id="cprz1"></span><span id="cprz2"></span>
-</label><ul id="yanmenu">
-<li><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook"><div></div>FACEBOOK</a></li>
-<li><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram Adresi"><div></div>INSTAGRAM</a></li>
-<li><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter Adresi"><div></div>TWITTER</a></li>
-<li><a href="https://www.linkedin.com/in/sametakyel/" alt="Samet Akyel Linkedin Adresi"><div></div>LINKEDIN</a></li>
-</ul>
-</div>
-<div class="ustmenu" id="ustmenum"> 
-    <a id="projelink" href="#projeler">Projelerim</a>
-	<ul class="projemenu">
-	<li><a href="https://cevremuh.com" alt="Çevre Mühendisleri Haber Paylaşım Platformu">Cevremuh</a></li>
-	</ul>
-    <a id="sosyallink" href="#sosyalmedya">Sosyal Menu</a>
-	<ul class="sosyalmenu">
-	<li><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook"><div style="background:url(sosyal2.png) left/cover no-repeat"><span>Facebook</span></div></a></li>
-	<li><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram adresi"><div style="background:url(sosyal2.png) center/cover no-repeat"><span>Instagram</span></div></a></li>
-	<li><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter"><div style="background:url(sosyal2.png) right/cover no-repeat"><span>Twitter</span></div></a></li>
-	</ul>
-    <a>İletisim</a>
-   </div>
-</nav>
-
-<div class="headeresim">
-<img src="samet_akyel.jpg" alt="Samet Akyel" width="50%" height="240"/>
-<h1 style="font:bold small-caps 4rem Arial Black;margin:20px 0px;padding:0;letter-spacing:-1.5px;color:gold;width:120px;">Samet Akyel</h1>
-<label>93 yılında doğan Samet, Çevre Mühendisi ve B Sınıfı İSG Uzmanı unvanı ile linyit madenciliği sektöründe 2017 yılından beri çalışmaktadır. Bunun yanında Web tasarım ve geliştirme konularında HTML,CSS ve Javascript ve kütüphaneleri konularında 10 yılı aşkın süredir bireysel işler yürütmektedir.</label>
-<a href="#sosyalmedya" style="background:linear-gradient(40deg,#7B68EE,#191970)">SOSYAL MEDYA</a>
-<a href="#ozgecmis">ÖZGEÇMİŞ</a>
-</div>
-
-<div class="ustara" id="galerihareket">
-<h1>GALERİ</h1>
-<div>
-<center>
-<img src="https://sametakyel.github.io/samet_akyel_insb.jpg" alt="samet akyel instagram" width="80%" height="auto">
-</center>
-</div>
-<div>
-<center>
-<img src="https://sametakyel.github.io/samet_akyel_insi.jpg" alt="samet akyel instagram" width="80%" height="auto">
-</center>
-</div>
-<div>
-<center>
-<img src="https://sametakyel.github.io/samet_akyel_insu.jpg" alt="samet akyel instagram" width="80%" height="auto">
-</center>
-</div>
-<div>
-<center>
-<img src="https://sametakyel.github.io/samet_akyel_insd.jpg" alt="samet akyel instagram" width="80%" height="auto">
-</center>
-</div>
-<div>
-<center>
-<img src="https://sametakyel.github.io/samet_akyel_insbes.jpg" alt="samet akyel instagram" width="80%" height="auto">
-</center>
-</div>
-<div>
-<center>
-<img src="https://sametakyel.github.io/samet_akyel_insa.jpg" alt="samet akyel instagram" width="80%" height="auto">
-</center>
-</div>
-</div>
-
-<div class="ustara">
-<h1>Bazı Arkadaşlarım</h1>
-<div>
-<svg width="40" height="40" viewBox="0 0 20 20">
-<path d="M19.404,6.65l-5.998-5.996c-0.292-0.292-0.765-0.292-1.056,0l-2.22,2.22l-8.311,8.313l-0.003,0.001v0.003l-0.161,0.161c-0.114,0.112-0.187,0.258-0.21,0.417l-1.059,7.051c-0.035,0.233,0.044,0.47,0.21,0.639c0.143,0.14,0.333,0.219,0.528,0.219c0.038,0,0.073-0.003,0.111-0.009l7.054-1.055c0.158-0.025,0.306-0.098,0.417-0.211l8.478-8.476l2.22-2.22C19.695,7.414,19.695,6.941,19.404,6.65z M8.341,16.656l-0.989-0.99l7.258-7.258l0.989,0.99L8.341,16.656z M2.332,15.919l0.411-2.748l4.143,4.143l-2.748,0.41L2.332,15.919z M13.554,7.351L6.296,14.61l-0.849-0.848l7.259-7.258l0.423,0.424L13.554,7.351zM10.658,4.457l0.992,0.99l-7.259,7.258L3.4,11.715L10.658,4.457z M16.656,8.342l-1.517-1.517V6.823h-0.003l-0.951-0.951l-2.471-2.471l1.164-1.164l4.942,4.94L16.656,8.342z"></path>
-</svg>
-<h1>HTML</h1>
-</div>
-<div>
-<svg width="45" height="45" viewBox="0 0 20 20">
-<path d="M18.555,15.354V4.592c0-0.248-0.202-0.451-0.45-0.451H1.888c-0.248,0-0.451,0.203-0.451,0.451v10.808c0,0.559,0.751,0.451,0.451,0.451h16.217h0.005C18.793,15.851,18.478,14.814,18.555,15.354 M2.8,14.949l4.944-6.464l4.144,5.419c0.003,0.003,0.003,0.003,0.003,0.005l0.797,1.04H2.8z M13.822,14.949l-1.006-1.317l1.689-2.218l2.688,3.535H13.822z M17.654,14.064l-2.791-3.666c-0.181-0.237-0.535-0.237-0.716,0l-1.899,2.493l-4.146-5.42c-0.18-0.237-0.536-0.237-0.716,0l-5.047,6.598V5.042h15.316V14.064z M12.474,6.393c-0.869,0-1.577,0.707-1.577,1.576s0.708,1.576,1.577,1.576s1.577-0.707,1.577-1.576S13.343,6.393,12.474,6.393 M12.474,8.645c-0.371,0-0.676-0.304-0.676-0.676s0.305-0.676,0.676-0.676c0.372,0,0.676,0.304,0.676,0.676S12.846,8.645,12.474,8.645"></path>
-</svg>
-<h1>CSS</h1>
-</div>
-<div>
-<svg width="40" height="40" viewBox="0 0 20 20">
-<path d="M15.808,14.066H6.516v-1.162H5.354v1.162H4.193c-0.321,0-0.581,0.26-0.581,0.58s0.26,0.58,0.581,0.58h1.162
-								v1.162h1.162v-1.162h9.292c0.32,0,0.58-0.26,0.58-0.58S16.128,14.066,15.808,14.066z M15.808,9.419h-1.742V8.258h-1.162v1.161
-								h-8.71c-0.321,0-0.581,0.26-0.581,0.581c0,0.321,0.26,0.581,0.581,0.581h8.71v1.161h1.162v-1.161h1.742
-								c0.32,0,0.58-0.26,0.58-0.581C16.388,9.679,16.128,9.419,15.808,9.419z M17.55,0.708H2.451c-0.962,0-1.742,0.78-1.742,1.742v15.1
-								c0,0.961,0.78,1.74,1.742,1.74H17.55c0.962,0,1.742-0.779,1.742-1.74v-15.1C19.292,1.488,18.512,0.708,17.55,0.708z M18.13,17.551
-								c0,0.32-0.26,0.58-0.58,0.58H2.451c-0.321,0-0.581-0.26-0.581-0.58v-15.1c0-0.321,0.26-0.581,0.581-0.581H17.55
-								c0.32,0,0.58,0.26,0.58,0.581V17.551z M15.808,4.774H9.419V3.612H8.258v1.162H4.193c-0.321,0-0.581,0.26-0.581,0.581
-								s0.26,0.581,0.581,0.581h4.065v1.162h1.161V5.935h6.388c0.32,0,0.58-0.26,0.58-0.581S16.128,4.774,15.808,4.774z"></path>
-</svg>
-<h1>JavaScript</h1>
-</div>
-
-<div>
-<svg width="40" height="40" viewBox="0 0 20 20">
-<path d="M8.627,7.885C8.499,8.388,7.873,8.101,8.13,8.177L4.12,7.143c-0.218-0.057-0.351-0.28-0.293-0.498c0.057-0.218,0.279-0.351,0.497-0.294l4.011,1.037C8.552,7.444,8.685,7.667,8.627,7.885 M8.334,10.123L4.323,9.086C4.105,9.031,3.883,9.162,3.826,9.38C3.769,9.598,3.901,9.82,4.12,9.877l4.01,1.037c-0.262-0.062,0.373,0.192,0.497-0.294C8.685,10.401,8.552,10.18,8.334,10.123 M7.131,12.507L4.323,11.78c-0.218-0.057-0.44,0.076-0.497,0.295c-0.057,0.218,0.075,0.439,0.293,0.495l2.809,0.726c-0.265-0.062,0.37,0.193,0.495-0.293C7.48,12.784,7.35,12.562,7.131,12.507M18.159,3.677v10.701c0,0.186-0.126,0.348-0.306,0.393l-7.755,1.948c-0.07,0.016-0.134,0.016-0.204,0l-7.748-1.948c-0.179-0.045-0.306-0.207-0.306-0.393V3.677c0-0.267,0.249-0.461,0.509-0.396l7.646,1.921l7.654-1.921C17.91,3.216,18.159,3.41,18.159,3.677 M9.589,5.939L2.656,4.203v9.857l6.933,1.737V5.939z M17.344,4.203l-6.939,1.736v9.859l6.939-1.737V4.203z M16.168,6.645c-0.058-0.218-0.279-0.351-0.498-0.294l-4.011,1.037c-0.218,0.057-0.351,0.28-0.293,0.498c0.128,0.503,0.755,0.216,0.498,0.292l4.009-1.034C16.092,7.085,16.225,6.863,16.168,6.645 M16.168,9.38c-0.058-0.218-0.279-0.349-0.498-0.294l-4.011,1.036c-0.218,0.057-0.351,0.279-0.293,0.498c0.124,0.486,0.759,0.232,0.498,0.294l4.009-1.037C16.092,9.82,16.225,9.598,16.168,9.38 M14.963,12.385c-0.055-0.219-0.276-0.35-0.495-0.294l-2.809,0.726c-0.218,0.056-0.351,0.279-0.293,0.496c0.127,0.506,0.755,0.218,0.498,0.293l2.807-0.723C14.89,12.825,15.021,12.603,14.963,12.385"></path>
-</svg>
-<h1>php MySQL</h1>
-</div>
-<div>
-<svg width="40" height="40" viewBox="0 0 20 20">
-<path d="M10,6.536c-2.263,0-4.099,1.836-4.099,4.098S7.737,14.732,10,14.732s4.099-1.836,4.099-4.098S12.263,6.536,10,6.536M10,13.871c-1.784,0-3.235-1.453-3.235-3.237S8.216,7.399,10,7.399c1.784,0,3.235,1.452,3.235,3.235S11.784,13.871,10,13.871M17.118,5.672l-3.237,0.014L12.52,3.697c-0.082-0.105-0.209-0.168-0.343-0.168H7.824c-0.134,0-0.261,0.062-0.343,0.168L6.12,5.686H2.882c-0.951,0-1.726,0.748-1.726,1.699v7.362c0,0.951,0.774,1.725,1.726,1.725h14.236c0.951,0,1.726-0.773,1.726-1.725V7.195C18.844,6.244,18.069,5.672,17.118,5.672 M17.98,14.746c0,0.477-0.386,0.861-0.862,0.861H2.882c-0.477,0-0.863-0.385-0.863-0.861V7.384c0-0.477,0.386-0.85,0.863-0.85l3.451,0.014c0.134,0,0.261-0.062,0.343-0.168l1.361-1.989h3.926l1.361,1.989c0.082,0.105,0.209,0.168,0.343,0.168l3.451-0.014c0.477,0,0.862,0.184,0.862,0.661V14.746z"></path>
-</svg>
-<h1>Photoshop</h1>
-</div>
-<div>
-<svg width="40" height="40" viewBox="0 0 20 20">
-<path d="M2.25,12.584c-0.713,0-1.292,0.578-1.292,1.291s0.579,1.291,1.292,1.291c0.713,0,1.292-0.578,1.292-1.291S2.963,12.584,2.25,12.584z M2.25,14.307c-0.238,0-0.43-0.193-0.43-0.432s0.192-0.432,0.43-0.432c0.238,0,0.431,0.193,0.431,0.432S2.488,14.307,2.25,14.307z M5.694,6.555H18.61c0.237,0,0.431-0.191,0.431-0.43s-0.193-0.431-0.431-0.431H5.694c-0.238,0-0.43,0.192-0.43,0.431S5.457,6.555,5.694,6.555z M2.25,8.708c-0.713,0-1.292,0.578-1.292,1.291c0,0.715,0.579,1.292,1.292,1.292c0.713,0,1.292-0.577,1.292-1.292C3.542,9.287,2.963,8.708,2.25,8.708z M2.25,10.43c-0.238,0-0.43-0.192-0.43-0.431c0-0.237,0.192-0.43,0.43-0.43c0.238,0,0.431,0.192,0.431,0.43C2.681,10.238,2.488,10.43,2.25,10.43z M18.61,9.57H5.694c-0.238,0-0.43,0.192-0.43,0.43c0,0.238,0.192,0.431,0.43,0.431H18.61c0.237,0,0.431-0.192,0.431-0.431C19.041,9.762,18.848,9.57,18.61,9.57z M18.61,13.443H5.694c-0.238,0-0.43,0.193-0.43,0.432s0.192,0.432,0.43,0.432H18.61c0.237,0,0.431-0.193,0.431-0.432S18.848,13.443,18.61,13.443z M2.25,4.833c-0.713,0-1.292,0.578-1.292,1.292c0,0.713,0.579,1.291,1.292,1.291c0.713,0,1.292-0.578,1.292-1.291C3.542,5.412,2.963,4.833,2.25,4.833z M2.25,6.555c-0.238,0-0.43-0.191-0.43-0.43s0.192-0.431,0.43-0.431c0.238,0,0.431,0.192,0.431,0.431S2.488,6.555,2.25,6.555z"></path>
-						</svg>
-<h1>Google Services</h1>
-</div>
-</div>
-
-<section class="projelerim" id="projeler">
-	<h1 class="kaydir kaydirekle">Projelerim</h1>
-	<div class="projediv">
-	<div></div>
-	<h2>Cevremuh</h2>
-	<label>Çevre Mühendisliği Haber Platformu</label>
-	<a href="https://cevremuh.com" alt="Çevre Mühendisliği Haber Paylaşım">&#10097; cevremuh.com</a>
-	</div>
-	<div class="projediv">
-	<div></div>
-	<h2>OzgeTanirGungoren</h2>
-	<label>Özel Eğitim ve Rehabilitasyon Merkezi</label>
-	<a href="https://ozgetanirgungoren.com" alt="özge tanır güngöre özel eğitim ve rehabilitasyon merkezi">&#10097; ozgetanirgungoren.com</a>
-	</div>
-	<div class="projediv">
-	<div></div>
-	<h2>MertAkinAkcay</h2>
-	<label>Mert Akın AKÇAY Kişisel Web Sitesi</label>
-	<a href="https://mertakinakcay.com" alt="mert akın akçay">&#10097; mertakinakcay.com</a>
-	</div>
-  </section>
-
-<div class="ara kaydir">
-<div>
-<input type="radio" name="haritada" id="is"/>
-<label id="islabel" for="is"><img src="is.svg" />İŞ</label>
-<div id="isim"><span>Çorum</span><span>Kütahya</span><span>Tekirdağ</span></div>
-
-<input type="radio" name="haritada" id="okul"/>
-<label id="okullabel" for="okul"><img src="okul.svg" />EĞİTİM</label>
-<div id="okulum"><span>KAYSERİ (2011-2012)</span><span>SAMSUN (2012-2017)</span><span>İSTANBUL (2017-2018)</span></div>
-
-<input type="radio" name="haritada" id="askerlik"/>
-<label id="askerlabel" for="askerlik"><img src="asker.png" />ASKERLİK</label>
-<div id="askerim"><span>KIZILTEPE / MARDİN</span></div>
-<div id="tumsayilar">
-<div id="gsayisi"> Sayısı</div>
-<div id="isayisi"> Sayısı</div>
-<div id="osayisi"> Sayısı</div>
-<div id="asayisi"> Sayısı</div>
-</div>
-</div>
-<div class="harita">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 457px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 574px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 114px; left: 549px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 95px; left: 512px;">
-<img src="okul.svg" style="position: absolute; height: 40px; width: 25px; top: 54px; left: 507px;"> <!-- Samsun -->
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 71px; left: 617px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 73px; left: 646px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 61px; left: 709px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 58px; left: 752px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 28px; left: 799px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: -2px; left: 817px;">
-<img src="asker.png" style="position: absolute; height: 35px; width: 35px; top: 316px; left: 787px;"><!-- Mardin -->
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 319px; left: 677px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 327px; left: 601px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 380px; left: 529px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 340px; left: 488px;">
-<img src="okul.svg" style="position: absolute; height: 40px; width: 25px; top: 244px; left: 493px;"> <!-- Kayseri -->
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 231px; left: 454px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 194px; left: 425px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 353px; left: 451px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 284px; left: 334px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 342px; left: 229px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 282px; left: 225px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 221px; left: 229px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 146px; left: 232px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 135px; left: 346px;">
-<img src="is.svg" style="position: absolute; height: 40px; width: 25px; top: 100px; left: 463px;"> <!-- Çorum -->
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 45px; left: 401px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 40px; left: 303px;">
-<img src="okul.svg" style="position: absolute; height: 40px; width: 25px; top: 58px; left: 155px;"> <!-- Istanbul -->
-<img src="is.svg" style="position: absolute; height: 40px; width: 25px; top: 77px; left: 57px;"> <!-- Tekirdag -->
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 6px; left: 65px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 10px; left: 34px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 110px; left: 17px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 230px; left: 178px;">
-<img src="is.svg" style="position: absolute; height: 40px; width: 25px; top: 205px; left: 187px;"> <!-- Kutahya -->
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 210px; left: 78px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 230px; left: 48px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 117px; left: 153px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 93px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 149px; left: 391px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 2px; left: 473px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 461px; left: 388px;">
-<img src="loc.svg" style="position: absolute; height: 40px; width: 25px; top: 276px; left: 453px;">
-</div>
-</div>
-<script type="text/javascript">
-var okuls =  document.querySelectorAll('img[src="okul.svg"]');
-var gezs =  document.getElementsByClassName("harita")[0].querySelectorAll("img[src]");
-var askers =  document.querySelectorAll("img[src='asker.png']");
-var iss =  document.querySelectorAll("img[src='is.svg']");
-document.getElementById("isayisi").innerHTML = "Çalıştığım Yerler : " + Math.abs(iss.length-1) + " Şehir";
-document.getElementById("osayisi").innerHTML = "Okuduğum Yerler : " + Math.abs(okuls.length-1) + " Şehir";
-document.getElementById("asayisi").innerHTML = "Askerliği Yaptığım Yer : " + Math.abs(askers.length-1) + " Şehir";
-document.getElementById("gsayisi").innerHTML = "Tüm Gidilen Yerler : " + Math.abs(gezs.length) + " Şehir";
-</script>
-<section class="cv" id="ozgecmis">
-	<div class="kaydir">
- 	<div>
-	<h1>Özgeçmiş</h1>
-	</div>
-	<img src="ben.jpg"/>
-	<h2>Kısaca</h2>
-	<p>93 yılında Çorum'da doğan Samet 1 Anaokulu 2 İlkokul 2 Lise 3 Üniversitede eğitim görmüştür. Sıkı bir <font color="OrangeRed">Galata</font><font color="orange">saray</font> taraftarıdır. Bilgisayar ile çok erken yaşta tanışmıştır. 2008 yılından beri Web Site tasarım ve geliştirme konusu üzerinde çalışmaktadır. İlk işi 16 yaşında iken Amasyada temizlik şirketine site yapmak olmuştu. O zaman Flash tasarımlar da populerdi Ama ne siteydi :)</p>
-	</div>
-	<div class="kaydir">
-	<h2>Eğitim</h2>
-	<h3>İLKÖĞRETİM</h3>
-	<p>İskilip Atatürk İlköğretim</p>
-	<p>Çorum 23 Nisan İlköğretim</p>
-	<h3>LİSE</h3>
-	<p>Çorum Anadolu Öğretmen Lisesi</p>
-	<p>Çorum Atatürk Lisesi</p>
-	<h3>ÜNİVERSİTE</h3>
-	<p>Melikşah Üniversitesi (2011-2012)</br>
-	<span>&#9656;</span> İngilizce Hazırlık</p>
-	<p>Ondokuz Mayıs Üniversitesi (2012-2017)</br>
-	<span>&#9656;</span> Çevre Mühendisliği</p>
-	<h3>YÜKSEK LİSANS</h3>
-	<p>Yeni Yüzyıl Üniversitesi (2017-2018)</br>
-	<span>&#9656;</span> İş Sağlığı ve Güvenliği</p>
-	</div>
-	<div class="kaydir">
-	<h2>Çalışma Geçmişi</h2>
-	<h3>ÇEVRE MÜHENDİSİ</h3>
-	<p>Linyit Ocağı</p>
-	<h3>SEVKİYAT SORUMLUSU</h3>
-	<p>Linyit Sevkiyatı</p>
-	</div>
-	<div class="kaydir">
-	<h2>Yetkinlikler</h2>
-	<h3>WEB</h3>
-	<p>HTML/CSS ve pureJavascript <span>&#9733;&#9733;&#9733;&#9733;&#9734;</span></p>
-	<p>PHP/MySQL <span>&#9733;&#9733;&#9733;&#9734;&#9734;</span></p>
-	<h3>OFFICE</h3>
-	<p>EXCEL <span>&#9733;&#9733;&#9733;&#9733;&#9734;</span></p>
-	<h3>PROGRAMLAR</h3>
-	<p>Photshop CS <span>&#9733;&#9733;&#9733;&#9734;&#9734;</span></p>
-	<p>Viusal Basic <span>&#9733;&#9733;&#9734;&#9734;&#9734;</span></p>
-	</div>
-	<div class="kaydir">
-	<h2>Serfifika & Belgeler</h2>
-	<p>ÇEVRE GÖREVLİSİ</p>
-	<p>LPG SORUMLU MÜDÜR</p>
-	<p>B SINIFI EHLİYET</p>
-	<p>İLK YARDIM SERTİFİKASI</p>
-	</div>
-  </section>
-
-<div class="araiki kaydir">
-<div class="kaydir">
-<img src="dinamik.svg"/>
-<label><h1>Dinamik Siteler</h1>
-Kayıt sistemi ile Kullanımı kolay Yönetim Paneline sahip özgün arayüzü ile hedef kitlesine uygun tasarımlar.
-<span>&#9737;</span></label>
-</div class="kaydir">
-<div>
-<img src="seo.svg"/>
-<label><h1>Güçlü Seo</h1>
-Sayfalarınızı Google'da üst sıralarda gösterilmesi için hassas olarak hazırlanmış scriptler.
-<span>&#9737;</span></label>
-</div>
-<div class="kaydir">
-<img src="resp.png"/>
-<label><h1>Responsive Tasarım</h1>
-Chrome,Firefox,Edge ve Opera gibi tarayıcılarda ve tüm Android/IOS cihazlarda desteklenen duyarlı tasarım.
-<span>&#9737;</span></label>
-</div>
-</div>
-
-<section class="sosyallerim" id="sosyalmedya">
-	<div class="kaydir">
-	<h1>Sosyal Medya Hesaplarım</h1>
-	</div>
-	<div class="kaydir">
-	<div></div>
-	<h1>Facebook</h1>
-	<label>Facebook Adresime</label>
-	<button><a href="https://facebook.com/thesametakyel" alt="Samet Akyel Facebook">GİT</a></button>
-	</div>
-	<div class="kaydir">
-	<div></div>
-	<h1>Instagram</h1>
-	<label>Instagram Profilime</label>
-	<button><a href="https://instagram.com/sametakyel" alt="Samet Akyel Instagram">GİT</a></button>
-	</div>
-	<div class="kaydir">
-	<div></div>
-	<h1>Twitter</h1>
-	<label>Twitter Profilime</label>
-	<button><a href="https://twitter.com/sametakyel" alt="Samet Akyel Twitter">GİT</a></button>
-	</div>
-  </section> 
-
-<footer> 
-   <div class="kaydir">
-     <h2>SİTE İNFO</h2>
-	<label><i>Kodlamada pureJavascript ScrollLoad ve CSS Display Grid & Flex kullanılmıştır.</i></label>
-   </div> 
-   <div class="kaydir" id="iletisim">
-    <h2>İLETİŞİM</h2>
-	<form>
-	<input type="text" placeholder="Lütfen İsim Yazınız"/>
-	<textarea placeholder="Mesaj Yaz"></textarea>
-	<input type="submit" value="GÖNDER"/>
-	</form>
-   </div> 
-   <div class="kaydir">
-	<img src="kafam2.png" width="150" height="150"/>
-     <label><i>Bu site <b>Samet AKYEL</b> tarafından yapılmıştır</i></label> 
-   </div> 
-  </footer> 
-  
-</div>
-
-</div>
-
-<script> 
-var rs = document.querySelectorAll("#galerihareket img");
-var resimurl = [];
-for(var i=0;i<rs.length;i++){resimurl.push(rs[i].src)}
-setInterval(function(){ 
-let arr = [];
-do {
-  let num = Math.floor(Math.random() * 6);
-  arr.push(num);
-  arr = arr.filter((item, index) => {
-    return arr.indexOf(item) === index
-  });
-} while (arr.length < 6);
-for(var i=0;i<rs.length;i++){rs[i].src = resimurl[arr[i]]}
-},3500);
-</script>
-</body>
-</html>
+	var projetam = document.querySelectorAll(".kutular>div div");
+	var izleme = document.querySelectorAll("#izleme");
+	var izlemeiframe = document.querySelectorAll("#izleme iframe");
+	var izlemekpt = document.querySelectorAll("#izleme button");
+	var mobilmenuac = document.querySelectorAll("#mobilmenuac");
+	var mobilmenu = document.querySelectorAll(".mobilmenu");
+	var tumsayfa = document.getElementsByClassName("tumsayfa");
+	mobilmenuac[0].addEventListener("click",function(){
+	tumsayfa[0].classList.add("body")
+	mobilmenu[0].style.display ="block"
+	})
+	tumsayfa[0].addEventListener("click",function(){tumsayfa[0].classList.remove("body");
+	mobilmenu[0].style.display ="none"})
+	izlemekpt[0].addEventListener("click",function(){
+		izlemeiframe[0].classList.remove("iframefekt")
+		izlemeiframe[0].classList.add("iframefekto")
+		setTimeout(function(){izleme[0].classList.remove("acik")},700)
+	})
+	for(let p=0;p<projetam.length;p++){
+		projetam[p].addEventListener("click",function(){
+			izleme[0].classList.add("acik")
+			setTimeout(function(){
+				izlemeiframe[0].classList.remove("iframefekto")
+				izlemeiframe[0].classList.add("iframefekt")
+				izlemeiframe[0].src= projetam[p].getAttribute('data-oyun')
+			},1600)
+		})
+	}
+	window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(function(){document.querySelectorAll("body")[0].classList.remove("giris");},1500)
+		})
+	var dataYazi = document.querySelectorAll("[data-yazi]");
+	var dataSpan = document.querySelectorAll("[data-yazi] div");
+	let i = 0;let sure =  5000;let s=0;
+	for(let a=0;a<dataYazi.length;a++){
+		let ayir = dataYazi[a].getAttribute('data-yazi').split(",");
+		setInterval(function(){i = (i + 1) % ayir.length;
+		dataSpan[a].innerHTML = "";s=0;
+		},sure);
+		setInterval(function(){
+		if(s<ayir[i].length){dataSpan[a].innerHTML += ayir[i].charAt(s)}
+		s++;
+		},200)
+	
+	}
+	</script>
+	</html>
