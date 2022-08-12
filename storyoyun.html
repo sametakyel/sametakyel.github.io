@@ -8,7 +8,7 @@ html,body{z-index:-1;margin:0;padding:0;scroll-behavior: smooth;width:100%;heigh
 #sol{position:absolute;width:33.3%;height:100%;background:transparent}
 #mesaj{color:#fff;position:absolute;width:80%;left:10%;background:rgba(0,0,0,0.45);display:flex;justify-content:center;align-items:top;padding:50px;box-sizing:border-box;border-radius:0 0px 25px 25px}
 #sag{position:absolute;width:33.3%;left:66.6%;height:100%;background:transparent}
-#ortamagir {z-index:999;cursor:pointer;display:none;position:absolute;font:bold 18px Arial;left:50%;bottom:100px;transform:translateX(-50%);padding:16px 32px;color:#fff;border-radius:15px;background:#000}
+#ortamagir {-moz-user-select: none; -khtml-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;z-index:999;cursor:pointer;display:none;position:absolute;font:bold 18px Arial;left:50%;bottom:100px;transform:translateX(-50%);padding:16px 32px;color:#fff;border-radius:15px;background:#000}
 #binabir,#binaiki {position:absolute;background:red;bottom:4%}
 #binabir {background:url(binabir.png) center/cover;width:120px;height:80px;left:15%}
 #binaiki {background:url(binaiki.png) center/cover;width:120px;height:100px;left:65%}
@@ -77,18 +77,19 @@ function kontrol(event){
   }
 }
 function binakapat(){
+	ortamagir.style.display="none";
 	binabir.style.display = "none";
 	binaiki.style.display = "none";
-	kapi.style.display = "block"
-	samet.style.left = "50px"
+	kapi.style.display = "block";
+	samet.style.left = "50px";
 }
 ortamagir.addEventListener("click",function(){
-	if(samet.offsetLeft > binabir.offsetLeft - 80 && samet.offsetLeft < binabir.offsetLeft + 50){
+	if(samet.offsetLeft > binabir.offsetLeft -  binabir.offsetWidth/2 && samet.offsetLeft < binabir.offsetLeft + binabir.offsetWidth){
 		binakapat();
 		canvas.style.background = "url(sahne1.jpg) center/cover";
 		mesaj.innerHTML = "Gül bahçesinde Gülün Dikenlerine karşı zorlu mücadeleler.."
 		}
-	if(samet.offsetLeft > binaiki.offsetLeft - 80 && samet.offsetLeft < binaiki.offsetLeft + 50){
+	if(samet.offsetLeft > binaiki.offsetLeft -  binaiki.offsetWidth/2 && samet.offsetLeft < binaiki.offsetLeft + binaiki.offsetWidth){
 		binakapat();
 		canvas.style.background = "url(sahne2.jpg) center/cover"
 		mesaj.innerHTML = "Şaha karşı anlaşma mı baş kaldırı mı ?"
