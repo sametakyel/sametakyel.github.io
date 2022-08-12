@@ -61,12 +61,12 @@ function kontrol(event){
 		mesaj.innerHTML = "KARAKTERIMIZ RAST GEKE GIRDIGI EVLERDE YASADIGI ZORLUKLARLA TEK BASINA MUCADELE ETMEKTEDIR.."
 	}
 	if(samet.offsetLeft > binabir.offsetLeft - binabir.offsetWidth/2 && samet.offsetLeft < binabir.offsetLeft + binabir.offsetWidth || samet.offsetLeft > binaiki.offsetLeft - binaiki.offsetWidth/2 && samet.offsetLeft < binaiki.offsetLeft + binaiki.offsetWidth){ortamagir.style.display="block"}else{ortamagir.style.display="none"}
-	if (event.keyCode == 65 || event.target.id == "sol") {
+	if (event.keyCode == 65 || event.keyCode == 37 || event.target.id == "sol") {
 	samet.style.left = samet.getBoundingClientRect().left - 5 + "px";
 	samet.style.transform = "scaleX(-1)";
 	if(samet.offsetLeft < 0){samet.style.left = 0}
   } 
-  if (event.keyCode == 68 || event.target.id == "sag") {
+  if (event.keyCode == 68 || event.keyCode == 39 ||event.target.id == "sag") {
 	samet.style.left = samet.getBoundingClientRect().left + 5 + "px";
 	samet.style.transform = "scaleX(1)";
 	if(samet.style.left > binaiki.offsetLeft + 75){samet.style.left = binaiki.offsetLeft + 75 + "px"}
