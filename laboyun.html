@@ -1,0 +1,91 @@
+<html>
+<style>
+body {margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:url("labarka.jpg") center/cover}
+nav {width:100%;padding:10px 5%;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start}
+#canlar {position:absolute;right:15px;display:flex;flex-wrap:wrap;justify-content:flex-end;box-sizing:border-box;margin-top:5px;background:rgba(0,0,0,0.5);border-radius:15px;padding:0 0 15px 25px}
+nav label {display:block;background:#fff;border-radius:5px;padding:8px 12px;text-align:center;}
+nav label:before {content:"Puan "}
+#canlar svg {transform:rotate(-135deg);margin:-15px 5px}
+#oyunbaslat {cursor:pointer;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:24px 32px;box-sizing:border-box;background:#000;color:#fff;font:bold 2rem Arial;border-radius:15px}
+#orenk {position:fixed;right:25px;bottom:25px;width:50px;height:50px;box-shadow:0px 0px 2px 1px #ccc;}
+#tup {position:fixed;left:calc(50% - 100px);transform:translateY(45%);bottom:25px;}
+#halan {position:absolute;top:0;display:flex;width:100%;height:100%;justify-content:center;align-items:flex-start;}
+#disk {width:80px;height:80px;box-shadow:0px 0px 2px 1px #ccc;border-radius:50%;animation:hareket 1.5s linear infinite}
+@keyframes hareket{
+0%{margin-top:0}
+100%{margin-top:120%}
+}
+</style>
+<body onload="baslangic()">
+<nav>                                           
+<label id="puan">0</label>
+<div id="canlar">
+<svg class="canim" fill="red" width="38" height="54" viewbox="0 0 10 862"><path d="M0 200 v-200 h200 a100,100 90 0,1 0,200 a100,100 90 0,1 -200,0z" /></svg>
+<svg class="canim" fill="red" width="38" height="54" viewbox="0 0 10 862"><path d="M0 200 v-200 h200 a100,100 90 0,1 0,200 a100,100 90 0,1 -200,0z" /></svg>
+<svg class="canim" fill="red" width="38" height="54" viewbox="0 0 10 862"><path d="M0 200 v-200 h200 a100,100 90 0,1 0,200 a100,100 90 0,1 -200,0z" /></svg>
+<svg class="canim" fill="red" width="38" height="54" viewbox="0 0 10 862"><path d="M0 200 v-200 h200 a100,100 90 0,1 0,200 a100,100 90 0,1 -200,0z" /></svg>
+<svg class="canim" fill="red" width="38" height="54" viewbox="0 0 10 862"><path d="M0 200 v-200 h200 a100,100 90 0,1 0,200 a100,100 90 0,1 -200,0z" /></svg>
+</div>                 
+</nav>
+<div id="halan">
+<div id="oyunbaslat">BAÞLAT</div>
+<div id="disk"></div>
+<div id="tup">
+<svg width="220" height="280" viewbox="0 0 18 18">
+<path id="tuprenk" fill="red" d="M 2 1 A 1 1 0 0 0 2 5 L 2 24 A 1 1 0 0 0 15 24 L 15 5 A 1 1 0 0 0 15 1 L 2 1"/>
+</svg>
+</div>
+</div>
+<div id="orenk"></div>
+<script>
+var disk = document.getElementById("disk");
+var orenk = document.getElementById("orenk");
+var puan = document.getElementById("puan");
+var canim = document.querySelectorAll(".canim");
+var tuprenk = document.getElementById("tuprenk");
+var baslat = document.getElementById("oyunbaslat");
+let puanlar = -1;let kalancan = 5;let oyundurum = false;
+var renkler = ["red","green","purple","blue","yellow"];
+let degrenk;
+let i = -1;
+	var oyunakisi = setInterval(oyunakis,1500)
+baslat.addEventListener("click",function(){
+	oyundurum = true;
+	oyunakisi = setInterval(oyunakis,1500)
+	baslat.style.display = "none";
+	kalancan = 5;puanlar = 0;
+	for(var c=0;c<canim.length;c++){canim[c].style.display = "block"}
+})
+	function oyunakis(){
+	i++;
+	if(i > renkler.length){i=0}
+	disk.style.display = "block";
+	disk.style.animationPlayState = "running";
+	disk.style.background = renkler[i];
+	degrenk = renkler[Math.floor(Math.random() * renkler.length)];
+	orenk.style.background = degrenk;
+	tuprenk.style.fill = degrenk
+	}
+	window.addEventListener("click",function(event){
+	if(oyundurum == true && event.target.id !== "oyunbaslat"){
+	if(window.getComputedStyle(document.querySelector('#disk')).background == window.getComputedStyle(document.querySelector('#orenk')).background){
+		puanlar +=1;puan.innerHTML = puanlar;
+		document.querySelector('#disk').style.display = "none"
+		orenk.style.background = renkler[Math.floor(Math.random() * renkler.length)];
+		console.log("Puan:" + puanlar);
+	}else{
+		kalancan -= 1;
+		canim[kalancan].style.display = "none";
+		if(kalancan < 1){
+			clearInterval(oyunakisi);
+			oyunakisi = null;
+			kalancan = 0;
+			baslat.style.display = "block";
+			oyundurum = false
+		}
+	}
+	}
+})
+</script>
+</body>
+</html>

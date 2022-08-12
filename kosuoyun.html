@@ -1,0 +1,82 @@
+<html>
+<style>
+body {margin:0;padding:0;width:100%;height:100%;overflow:hidden}
+#oyunalani {position:relative;width:100%;height:100%;background:#fff url(ziplaoyun.jpg) center/cover;overflo:hidden}
+#oyunbaslat {cursor:pointer;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:24px 32px;box-sizing:border-box;background:#000;color:#fff;font:bold 2rem Arial}
+#oyuncu {position:absolute;bottom:0px;left:50px;background:url("kos.gif") center/cover}
+.oyuncuy {width:160px;height:210px;transition:1s all}
+.oyuncu {width:80px;height:105px ;transition:1s all}
+#kutu {position:absolute;bottom:0px;width:55px;height:55px;background:url(cactus.png) center/cover;animation-name:kutuani;animation-duration:4s;animation-iteration-count:infinite;animation-timing-function:linear}
+#skor {display:none;position:fixed;left:50%;top:20%;transform:translate(-50%,20%);border-radius:12px;background:#eee;padding:12px 18px}
+#skor::before {content:"PUAN";position:absolute;margin-top:-35px;margin-left:-15px}
+@keyframes kutuani{
+0%{left:100%}
+100%{left:0%}
+}
+@keyframes zipla{
+0%{bottom:0}
+33%{bottom:120px}
+66%{bottom:120px}
+100%{bottom:0}
+}
+.zipla {animation:zipla 1s linear}
+</style>
+<body>
+<div id="oyunalani">
+<div id="oyunbaslat">BAÞLAT</div>
+<div id="skor">0</div>
+<div id="oyuncu" class="oyuncuy"></div>
+<div id="kutu"></div>
+</div>
+</body>
+<script>
+var sayi = 0;var oyundurdu = false;
+var skor = document.getElementById("skor");
+var oyuncu = document.getElementById("oyuncu");
+var baslat = document.getElementById("oyunbaslat");
+var engel = document.getElementById("kutu");
+engel.style.animationPlayState = "paused";
+document.getElementById("oyunalani").addEventListener("click",zipla)
+baslat.addEventListener("click",function(){
+	oyundurdu = false;
+	sayi = 0;
+	skor.style.display = "block"
+	baslat.style.display = "none"
+	engel.style.display = "block"
+	engel.style.animationPlayState = "running";
+	oyuncu.className = "oyuncu"
+})
+function zipla(){
+var oyuncuY = parseInt(window.getComputedStyle(oyuncu).getPropertyValue("bottom"));
+var engelX = parseInt(window.getComputedStyle(engel).getPropertyValue("left"));
+	if(oyuncu.classList !== "zipla"){
+	oyuncu.classList.add("zipla")
+	}
+	setTimeout(function(){
+	oyuncu.classList.remove("zipla")
+	},1000)
+}
+let saniye =0;let anisure = 4;
+const denetle = setInterval(function(){
+saniye++;
+if(saniye%1000 == 1 && oyundurdu == false){
+engel.style.display = "none";
+engel.style.display = "block";
+anisure += -0.5; 
+engel.style.animationDuration =  anisure +"s";
+}
+var oyuncuY = parseInt(window.getComputedStyle(oyuncu).getPropertyValue("bottom"));
+var engelX = parseInt(window.getComputedStyle(engel).getPropertyValue("left"));
+	if(engelX<110 && engelX > 70 && oyuncuY<80){
+		engel.style.animationPlayState = "paused";
+	engel.style.display = "none"
+		oyundurdu = true;
+		baslat.style.display = "block"
+		saniye = 0;
+		anisure = 4;
+	}
+	if(oyundurdu==false){++sayi}
+	skor.innerHTML = sayi
+},10)
+</script>
+</html>
