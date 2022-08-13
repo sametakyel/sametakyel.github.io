@@ -1,4 +1,7 @@
 # SAMET AKYEL
 Samet Akyel Github Page
-made by CSS & HTML & VanillaScript
 .....
+Story Game
+Running Game
+Lab Game
+and other Web Sites made by me.
