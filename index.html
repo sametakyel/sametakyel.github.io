@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -54,9 +55,10 @@
 <meta name="viewport" content="initial-scale=0.68,width=device-width,user-scalable=0" />
 <link rel="icon" type="image/png" href="samet_akyel.ico">
 <style>
-body {position:relative;margin:0;padding:0;background:#fff;transition:0.5s all}
-.tumsayfa {transition:0.5s all}
-.mobilmenu {position:fixed;width:50%;height:100%;margin-left:50%;background:#000;display:flex;justify-content:flex-end}
+body {position:relative;margin:0;overflow-x: hidden;padding:0;background:#fff;transition:0.5s all}
+.samet {display:flex;overflow-x: scroll;scroll-snap-type: x mandatory;transition:0.5s all;}
+.tumsayfa {width:100vw;transition:0.5s all;position:relative;scroll-snap-align: center;}
+.mobilmenu {z-index:-1;position:fixed;top:0;min-width:50vw;left:50%;height:100%;background:#000;display:flex;justify-content:flex-end}
 .body {background:#fff;overflow:hidden;height:90vh;border-radius:25px;transition:0.5s all;transform:translate(-50%,5%);box-shadow: rgba(0, 0, 0, 0.5) 0px 20px 25px -5px, rgba(0, 0, 0, 0.74) 0px 10px 10px -5px}
 header {width:100%;display:flex}
 aside {float:left;position:relative;width:25%;height:100vh;margin:0;padding:50px 0;box-sizing:border-box;background:#1A2430;display:flex;justify-content:flex-start;align-items:center;flex-direction:column}
@@ -71,7 +73,6 @@ aside div {margin:15px 0 20px 0;width:70%;color:#bbb;display:flex;justify-conten
 aside div >a path {fill:#aaa}
 aside div >a:hover path{fill:#fff}
 
-.mobilmenu {display:none}
 .mobilmenu aside {position:relative;width:100%;height:100vh;margin:0;padding:50px 0;margin-left:0%;box-sizing:border-box;background:#fff;display:flex;justify-content:flex-start;align-items:center;flex-direction:column}
 .mobilmenu aside > img {border:6px solid #777;margin:15px 0}
 .mobilmenu aside img {border-radius:50%}
@@ -143,10 +144,6 @@ footer a:hover {color:red}
 .iframefekt {visibility:visible;width:90%;transition:0.5s all}
 .kapali {height:0;visibility:hidden;z-index:-1}
 .acik {height:100vh;visibility:visible;z-index:9999}
-#gulsah {position:absolute;display:flex;justify-content:flex-end;width:100%;position:relative;padding:0 2.5%;margin-top:-25px;box-sizing:border-box}
-#sah{position:absolute;z-index:1;transition:0.5s all}
-#gul {position:absolute;z-index:99}
-#gul:hover + #sah{visibility:visible;margin-top:-30px;z-index:100}
 
 #onyukleme {z-index:99999;position:fixed;background:#f4f4f4;width:100%;height:100%;margin:0;padding:0}
 #onyukleme div{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:160px;height:160px;background:url("kafam2.png");background-size:100% 100%;background-repeat:no-repeat;border-radius:50%;animation:yukleniyor 3s infinite linear;}
@@ -157,6 +154,7 @@ footer a:hover {color:red}
 100% {filter:grayscale(0%);transition:1s all}
 }
 @media only screen and (max-width: 800px) {
+	.mduzelt {scroll-snap-align: center;min-width:50vw;height:100%;visibility:hidden;z-index:-1}
 	@keyframes sagasola {
 	0% {background-position:left}
 	50% {background-position:center}
@@ -169,10 +167,7 @@ footer a:hover {color:red}
 	section article {width:50%}
 	aside {display:none;position:absolute;right;0}
 	#mobilmenuac {cursor:pointer;z-index:9999;position:absolute;display:block;right:2.5%;top:10px;width:40px;height:40px}
-	#mobilicon {border-radius:25px;z-index:9999;position:absolute;display:block;right:0%;top:15px;width:30px;height:5px;background:#fff}
-	#mobilicon:after {content:"";border-radius:25px;z-index:9999;position:absolute;display:block;right:0%;top:10px;width:20px;height:5px;background:#fff}
-	#mobilicon:before {content:"";border-radius:25px;z-index:9999;position:absolute;display:block;right:0%;top:20px;width:10px;height:5px;background:#fff}
-	
+	#mobilicon {z-index:9999;position:absolute;display:block;right:0%;top:0px;width:32px;height:32px;color:#fff;font:bold 56px Arial;user-select: none;-webkit-user-select: none;}
 	.header {width:100%;height:60vh;border-bottom-right-radius:80px;box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px}
 	.header h1 {font-size:3.5rem}
 	nav > div {justify-content:flex-start}
@@ -184,35 +179,7 @@ footer a:hover {color:red}
 <div id="onyukleme">
 <div><span>Yükleniyor</span></div>
 </div>
-<div class="mobilmenu">
-<aside>
-	<img src="https://sametakyel.github.io/ben.jpg" width="180" height="180"/>
-	<h2>SAMET AKYEL</h2>
-	<div class="sosyalmedya">
-	<a href="https://facebook.com/thesametakyel">
-	<svg viewBox="0 0 20 20" width="32" height="32">
-	<path  d="M10,0.5c-5.247,0-9.5,4.253-9.5,9.5c0,5.247,4.253,9.5,9.5,9.5c5.247,0,9.5-4.253,9.5-9.5C19.5,4.753,15.247,0.5,10,0.5 M10,18.637c-4.77,0-8.636-3.867-8.636-8.637S5.23,1.364,10,1.364S18.637,5.23,18.637,10S14.77,18.637,10,18.637 M10.858,7.949c0-0.349,0.036-0.536,0.573-0.536h0.719v-1.3H11c-1.38,0-1.866,0.65-1.866,1.743v0.845h-0.86V10h0.86v3.887h1.723V10h1.149l0.152-1.299h-1.302L10.858,7.949z"></path>
-	</svg>
-	</a>
-	<a href="https://twitter.com/sametakyel">
-	<svg viewBox="0 0 20 20" width="32" height="32">
-	<path  d="M14.467,6.707c-0.34,0.198-0.715,0.342-1.115,0.419c-0.318-0.335-0.775-0.545-1.279-0.545c-0.969,0-1.754,0.773-1.754,1.727c0,0.135,0.015,0.267,0.045,0.394C8.905,8.628,7.612,7.94,6.747,6.896C6.596,7.151,6.509,7.448,6.509,7.764c0,0.599,0.31,1.128,0.78,1.438C7.002,9.192,6.732,9.115,6.495,8.985c0,0.007,0,0.014,0,0.021c0,0.837,0.605,1.535,1.408,1.694c-0.147,0.04-0.302,0.06-0.462,0.06c-0.113,0-0.223-0.011-0.33-0.031c0.223,0.687,0.871,1.186,1.638,1.199c-0.6,0.464-1.356,0.739-2.179,0.739c-0.142,0-0.281-0.007-0.418-0.023c0.777,0.489,1.699,0.775,2.689,0.775c3.228,0,4.991-2.63,4.991-4.913c0-0.075-0.002-0.149-0.004-0.223c0.342-0.244,0.639-0.547,0.875-0.894c-0.316,0.137-0.652,0.23-1.008,0.272C14.057,7.448,14.336,7.11,14.467,6.707 M10,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.196,0,9.407-4.211,9.407-9.406C19.406,4.805,15.195,0.594,10,0.594 M10,18.552c-4.723,0-8.551-3.829-8.551-8.552S5.277,1.449,10,1.449c4.723,0,8.551,3.829,8.551,8.551S14.723,18.552,10,18.552"></path>
-	</svg>
-	</a>
-	<a href="https://instagram.com/sametakyel">
-	<svg width="32" height="32" viewBox="0 0 20 20">
-	<path d="M9.969,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.195,0,9.406-4.211,9.406-9.406C19.375,4.805,15.164,0.594,9.969,0.594 M9.969,18.552c-4.723,0-8.551-3.829-8.551-8.552s3.829-8.551,8.551-8.551S18.521,5.277,18.521,10S14.691,18.552,9.969,18.552 M12.534,5.724H7.403c-0.944,0-1.71,0.766-1.71,1.71v5.131c0,0.944,0.766,1.71,1.71,1.71h5.131c0.944,0,1.71-0.766,1.71-1.71V7.435C14.244,6.49,13.479,5.724,12.534,5.724M11.679,7.007h1.283V8.29h-1.283V7.007z M9.969,8.29c0.944,0,1.71,0.766,1.71,1.71s-0.766,1.71-1.71,1.71s-1.71-0.766-1.71-1.71S9.024,8.29,9.969,8.29 M13.39,12.565c0,0.472-0.384,0.854-0.855,0.854H7.403c-0.472,0-0.855-0.383-0.855-0.854V9.573h0.898C7.423,9.712,7.403,9.854,7.403,10c0,1.417,1.149,2.565,2.565,2.565c1.416,0,2.565-1.148,2.565-2.565c0-0.146-0.02-0.288-0.043-0.427h0.898V12.565z"></path>
-	</svg>
-	</a>
-	<a href="https://www.linkedin.com/in/sametakyel/">
-	<svg width="32" height="32" viewBox="0 0 25 25">
-	<path d="M 11.665 0.511 a 1 1 0 0 0 -0.059 23.268 A 1 1 0 0 0 11.783 0.57 z z z M 8 19 H 5 v -9 h 3 z M 6.5 8.25 A 1.75 1.75 0 1 1 8.3 6.5 a 1.78 1.78 0 0 1 -1.8 1.75 z M 19 19 h -3 v -4.74 c 0 -1.42 -0.6 -1.93 -1.38 -1.93 A 1.74 1.74 0 0 0 13 14.19 a 0.66 0.66 0 0 0 0 0.14 V 19 h -3 v -9 h 2.9 v 1.3 a 3.11 3.11 0 0 1 2.7 -1.4 c 1.55 0 3.36 0.86 3.36 3.66 z"></path>
-	</svg>
-	</a>
-	</div>
-   </aside>
-</div>
-   <div id="mobilmenuac"><div id="mobilicon"></div></div>
+<div class="samet">
 <div class="tumsayfa">
 	<div id="izleme" class="kapali">
 	<button id="izlemekpt">X</button>
@@ -343,6 +310,7 @@ footer a:hover {color:red}
    <div>
 	<div data-oyun="https://cevremuh.com"><img src="https://cevremuh.com/cevremuh_ico.png" widtth="180"/></div>
 	<div data-oyun="https://ozgetanirgungoren.com/"><img src="https://ozgetanirgungoren.com/ozgetanir.png" width="180"/></div>
+	<div data-oyun="https://gezerkaynak.com/"><img src="https://gezerkaynak.com/gezerkaynaklogo.png" width="180"/></div>
    </div>
    </section>
    <section id="sosyal" class="kutular">
@@ -380,6 +348,38 @@ footer a:hover {color:red}
    <img src="https://sametakyel.github.io/kafam2.png" width="72" height="72">
    </footer>
 </div>
+<div class="mduzelt"></div>
+<div class="mobilmenu">
+<div style="position:absolute;right:20px;top:5px;font:bold 24px Arial;pointer-events:none;z-index:1" class="mkapat">X</div>
+<aside>
+	<img src="https://sametakyel.github.io/ben.jpg" width="180" height="180"/>
+	<h2>SAMET AKYEL</h2>
+	<div class="sosyalmedya">
+	<a href="https://facebook.com/thesametakyel">
+	<svg viewBox="0 0 20 20" width="32" height="32">
+	<path  d="M10,0.5c-5.247,0-9.5,4.253-9.5,9.5c0,5.247,4.253,9.5,9.5,9.5c5.247,0,9.5-4.253,9.5-9.5C19.5,4.753,15.247,0.5,10,0.5 M10,18.637c-4.77,0-8.636-3.867-8.636-8.637S5.23,1.364,10,1.364S18.637,5.23,18.637,10S14.77,18.637,10,18.637 M10.858,7.949c0-0.349,0.036-0.536,0.573-0.536h0.719v-1.3H11c-1.38,0-1.866,0.65-1.866,1.743v0.845h-0.86V10h0.86v3.887h1.723V10h1.149l0.152-1.299h-1.302L10.858,7.949z"></path>
+	</svg>
+	</a>
+	<a href="https://twitter.com/sametakyel">
+	<svg viewBox="0 0 20 20" width="32" height="32">
+	<path  d="M14.467,6.707c-0.34,0.198-0.715,0.342-1.115,0.419c-0.318-0.335-0.775-0.545-1.279-0.545c-0.969,0-1.754,0.773-1.754,1.727c0,0.135,0.015,0.267,0.045,0.394C8.905,8.628,7.612,7.94,6.747,6.896C6.596,7.151,6.509,7.448,6.509,7.764c0,0.599,0.31,1.128,0.78,1.438C7.002,9.192,6.732,9.115,6.495,8.985c0,0.007,0,0.014,0,0.021c0,0.837,0.605,1.535,1.408,1.694c-0.147,0.04-0.302,0.06-0.462,0.06c-0.113,0-0.223-0.011-0.33-0.031c0.223,0.687,0.871,1.186,1.638,1.199c-0.6,0.464-1.356,0.739-2.179,0.739c-0.142,0-0.281-0.007-0.418-0.023c0.777,0.489,1.699,0.775,2.689,0.775c3.228,0,4.991-2.63,4.991-4.913c0-0.075-0.002-0.149-0.004-0.223c0.342-0.244,0.639-0.547,0.875-0.894c-0.316,0.137-0.652,0.23-1.008,0.272C14.057,7.448,14.336,7.11,14.467,6.707 M10,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.196,0,9.407-4.211,9.407-9.406C19.406,4.805,15.195,0.594,10,0.594 M10,18.552c-4.723,0-8.551-3.829-8.551-8.552S5.277,1.449,10,1.449c4.723,0,8.551,3.829,8.551,8.551S14.723,18.552,10,18.552"></path>
+	</svg>
+	</a>
+	<a href="https://instagram.com/sametakyel">
+	<svg width="32" height="32" viewBox="0 0 20 20">
+	<path d="M9.969,0.594c-5.195,0-9.406,4.211-9.406,9.406c0,5.195,4.211,9.406,9.406,9.406c5.195,0,9.406-4.211,9.406-9.406C19.375,4.805,15.164,0.594,9.969,0.594 M9.969,18.552c-4.723,0-8.551-3.829-8.551-8.552s3.829-8.551,8.551-8.551S18.521,5.277,18.521,10S14.691,18.552,9.969,18.552 M12.534,5.724H7.403c-0.944,0-1.71,0.766-1.71,1.71v5.131c0,0.944,0.766,1.71,1.71,1.71h5.131c0.944,0,1.71-0.766,1.71-1.71V7.435C14.244,6.49,13.479,5.724,12.534,5.724M11.679,7.007h1.283V8.29h-1.283V7.007z M9.969,8.29c0.944,0,1.71,0.766,1.71,1.71s-0.766,1.71-1.71,1.71s-1.71-0.766-1.71-1.71S9.024,8.29,9.969,8.29 M13.39,12.565c0,0.472-0.384,0.854-0.855,0.854H7.403c-0.472,0-0.855-0.383-0.855-0.854V9.573h0.898C7.423,9.712,7.403,9.854,7.403,10c0,1.417,1.149,2.565,2.565,2.565c1.416,0,2.565-1.148,2.565-2.565c0-0.146-0.02-0.288-0.043-0.427h0.898V12.565z"></path>
+	</svg>
+	</a>
+	<a href="https://www.linkedin.com/in/sametakyel/">
+	<svg width="32" height="32" viewBox="0 0 25 25">
+	<path d="M 11.665 0.511 a 1 1 0 0 0 -0.059 23.268 A 1 1 0 0 0 11.783 0.57 z z z M 8 19 H 5 v -9 h 3 z M 6.5 8.25 A 1.75 1.75 0 1 1 8.3 6.5 a 1.78 1.78 0 0 1 -1.8 1.75 z M 19 19 h -3 v -4.74 c 0 -1.42 -0.6 -1.93 -1.38 -1.93 A 1.74 1.74 0 0 0 13 14.19 a 0.66 0.66 0 0 0 0 0.14 V 19 h -3 v -9 h 2.9 v 1.3 a 3.11 3.11 0 0 1 2.7 -1.4 c 1.55 0 3.36 0.86 3.36 3.66 z"></path>
+	</svg>
+	</a>
+	</div>
+   </aside>
+</div>
+<div id="mobilmenuac"><div id="mobilicon">&#187;</div></div>
+</div>
 </body>   
 <!-- Geçiş -->
 <script>
@@ -398,11 +398,11 @@ document.onreadystatechange = () => {
 	var mobilmenu = document.querySelectorAll(".mobilmenu");
 	var tumsayfa = document.getElementsByClassName("tumsayfa");
 	mobilmenuac[0].addEventListener("click",function(){
-	tumsayfa[0].classList.add("body")
-	mobilmenu[0].style.display ="block"
+	if(document.getElementsByClassName("samet")[0].scrollLeft < 10){
+	document.getElementsByClassName("samet")[0].scrollLeft = "500"
+	}else{
+	document.getElementsByClassName("samet")[0].scrollLeft = "0"}
 	})
-	tumsayfa[0].addEventListener("click",function(){tumsayfa[0].classList.remove("body");
-	mobilmenu[0].style.display ="none"})
 	izlemekpt[0].addEventListener("click",function(){
 		izlemeiframe[0].classList.remove("iframefekt")
 		izlemeiframe[0].classList.add("iframefekto")
