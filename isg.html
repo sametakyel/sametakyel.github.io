@@ -706,7 +706,7 @@ button[disabled]{
         <div class="form-step" id="submitSection">
             <div id="summary"></div>
 	    <button type="button" id="basadonn">Başa Dön</button>
-            <input type="submit" id="sontam"/>
+            <input type="submit" id="sontam" value="Gönder"/>
    	 <div id="notification" class="notification">
         Başarılı bir şekilde gönderildi!
     	</div>
@@ -778,7 +778,7 @@ button[disabled]{
             const input1 = document.querySelector('input[name="input1"]').value;
             const input2 = document.querySelector('input[name="input2"]:checked').value;
             const input3 = document.querySelector('input[name="input3"]:checked').value;
-            document.getElementById("sontam").innerHTML = "GONDERILIYOR"
+            document.getElementById("sontam").value = "GONDERILIYOR"
             // Google Sheets'inize verileri ekleyecek olan Google Apps Script URL
             const url = 'https://script.google.com/macros/s/AKfycbzDqt64RMo3f8Fe9pH1U0kUouSzH2j-mhqPEnWClbqzB6WDfCIV0QiEjNzEhtPB6qX2/exec';
 
