@@ -637,6 +637,27 @@ button[disabled]{
 
                         <input type="radio" id="input2-40" name="input2" value="40">
                         <label for="input2-40">40</label>
+
+                        <input type="radio" id="input2-41" name="input2" value="41">
+                        <label for="input2-41">41</label>
+
+                        <input type="radio" id="input2-42" name="input2" value="42">
+                        <label for="input2-42">42</label>
+
+                        <input type="radio" id="input2-43" name="input2" value="43">
+                        <label for="input2-43">43</label>
+			    
+                        <input type="radio" id="input2-44" name="input2" value="44">
+                        <label for="input2-44">44</label>
+
+                        <input type="radio" id="input2-45" name="input2" value="45">
+                        <label for="input2-45">45</label>
+
+                        <input type="radio" id="input2-46" name="input2" value="46">
+                        <label for="input2-46">46</label>
+			    
+                        <input type="radio" id="input2-47" name="input2" value="47">
+                        <label for="input2-47">47</label>
                     </div>
 
                     <button type="button" id="next2">İlerle</button>
@@ -665,6 +686,15 @@ button[disabled]{
 
                         <input type="radio" id="input3-l" name="input3" value="L">
                         <label for="input3-l">L</label>
+			    
+                        <input type="radio" id="input3-xl" name="input3" value="XL">
+                        <label for="input3-xl">XL</label>
+			    
+                        <input type="radio" id="input3-xxl" name="input3" value="XXL">
+                        <label for="input3-xxl">XXL</label>
+			    
+                        <input type="radio" id="input3-xxxl" name="input3" value="XXXL">
+                        <label for="input3-xxxl">XXXL</label>
                     </div>
                     <button type="button" id="basadon">Başa Dön</button>
                     <button type="button" id="next3">TAMAMLA</button>
@@ -677,7 +707,7 @@ button[disabled]{
 	    <button type="button" id="basadonn">Başa Dön</button>
             <input type="submit" id="sontam"/>
    	 <div id="notification" class="notification">
-        Form başarıyla gönderildi!
+        Başarılı bir şekilde gönderildi!
     	</div>
         </div>
         </form>
@@ -747,7 +777,7 @@ button[disabled]{
             const input1 = document.querySelector('input[name="input1"]').value;
             const input2 = document.querySelector('input[name="input2"]:checked').value;
             const input3 = document.querySelector('input[name="input3"]:checked').value;
-
+            document.getElementById("sontam").innerHTML = "GONDERILIYOR"
             // Google Sheets'inize verileri ekleyecek olan Google Apps Script URL
             const url = 'https://script.google.com/macros/s/AKfycbzDqt64RMo3f8Fe9pH1U0kUouSzH2j-mhqPEnWClbqzB6WDfCIV0QiEjNzEhtPB6qX2/exec';
 
