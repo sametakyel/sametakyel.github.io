@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="googlebot" content="noindex">
+    <title>Form Veri Gönder</title>
+</head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .step-container {
+            text-align: center;
+        }
+
+        label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+            display: block;
+        }
+
+        .radio-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+
+        .radio-container input[type="radio"] {
+            display: none;
+        }
+
+        .radio-container label {
+            padding: 12px 20px;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .radio-container input[type="radio"]:checked + label {
+            background-color: #5cb85c;
+            color: white;
+            border: 2px solid #4cae4c;
+        }
+
+        .radio-container input[type="radio"]:checked + label {
+            font-weight: bold;
+            border-radius: 10px;
+            border: 2px solid #5cb85c;
+        }
+
+        .radio-container label:hover {
+            background-color: #e0e0e0;
+        }
+
+
+        .suggestions {
+            margin-top: 10px;
+        }
+
+        .suggestion-item {
+            padding: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #e0e0e0;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #5cb85c;
+        }
+
+        input[type="submit"],button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #5cb85c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;margin:auto;
+            transition: background-color 0.3s;
+        }
+	#basadon,#basadonn {background:#B22222}
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        .img-container {
+            margin-top: 20px;
+        }
+
+        img {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+        }
+
+        #submitSection {
+            display: none;
+            text-align: center;
+        }
+
+        .form-step p {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .form-step.active button {
+            margin-top: 20px;
+        }
+
+              .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            width: auto;
+            max-width: 400px;
+            font-size: 16px;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+        }
+
+        /* Animation */
+        @keyframes slideUp {
+            from {
+                bottom: -100px;
+                opacity: 0;
+            }
+            to {
+                bottom: 20px;
+                opacity: 1;
+            }
+        }
+
+        /* Show notification */
+        .show {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+ button:disabled,
+button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+        @media (max-width: 600px) {
+            .form-container {
+                padding: 20px;
+                width: 90%;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <form id="myForm">
+            <!-- Step 1: İsim Soyisim -->
+            <div class="form-step active" id="step1">
+                <div class="step-container">
+                    <label for="input1">İsim Soyisim:</label><br>
+    <div class="container">
+        <input type="text" id="searchInput" name="input1" placeholder="İsminizi girin.">
+        <div id="suggestions" class="suggestions hidden"></div>
+    </div>
+
+    <script>
+        // Örnek kelimeler array'i
+        const wordsArray = ["ABDULKADİR KARAASLAN",
+    "ABDULKADİR ÖZŞAHİN",
+    "ABDULKADİR ÖZTAŞ",
+    "ABDULLAH TENiKECİ",
+    "ABDULLAH ÖZGÜR",
+    "ABDULLAH KOÇ",
+    "ABDULSAMET ÇULHA",
+    "ADEM ÇINAR",
+    "ADEM KAYA",
+    "ADNAN SÜRER",
+    "AHMET SARIKOCA",
+    "AHMET ÖZSOY",
+    "AHMET AKSOY",
+    "AHMET ŞAHİN",
+    "AHMET KARASU",
+    "AHMET YANAR",
+    "AHMET ERSOY ÖZMEN",
+    "AHMET HAKAN YILDIRIM",
+    "ALİ YETKİN",
+    "ALİ YURT",
+    "ALİ PALAZ",
+    "ALİ OKUMUŞ",
+    "ALİ NACAK",
+    "ALİ OSMAN BAYKARA",
+    "ALİ OSMAN ÖZDEMİR",
+    "ALİ OSMAN BÖREKÇİ",
+    "ALİ RIZA GÜR",
+    "ALPER ÇİÇEK",
+    "ALPER CAN ALPER",
+    "ARİF ŞENTÜRK",
+    "ARİF DİLEKCİ",
+    "ARİF BAKİ DURSUN",
+    "ARSLAN KELLECİ",
+    "ARSLAN GÜRBÜZ",
+    "ATİLLA AYAZ",
+    "ATİLLA ŞARLAVUK",
+    "AVNİ SAĞLAM",
+    "AYDIN GÖKGÜNEY",
+    "AYHAN KURT",
+    "AYHAN KUŞ",
+    "AYHAN KALABAS",
+    "AYHAN KILIÇARSLAN",
+    "AYŞEGÜL AVCI",
+    "AYŞEGÜL HASRET",
+    "BAHTIM DÖNMEZ",
+    "BARIŞ AĞIRBAŞ",
+    "BATUHAN CENAN",
+    "BEDİRHAN YAKUP ŞENTÜRK",
+    "BEKİR CANSIZ",
+    "BEKİR KÜÇÜKGÜZEL",
+    "BİLAL CEYLAN",
+    "BURHAN DEMİR",
+    "BURHAN TÜNK",
+    "BÜLENT ŞAHİN",
+    "BÜNYAMİN YURTSUZ",
+    "BÜNYAMİN GÜNDOĞAN",
+    "CANER GÖKMEN",
+    "CANER KILIÇ",
+    "CELALETTİN KAVAK",
+    "CEVAT YENİCE",
+    "CEYLAN SATILMIŞ",
+    "CEYLANİ KILIÇ",
+    "CİHAT ÖNDER",
+    "CUMA KAYKISIZ",
+    "ÇAĞLAR YILMAZ",
+    "ÇELEBİ İPEK",
+    "DOĞAN AKSOY",
+    "DOĞAN GÜNEŞ ÖZBEK",
+    "DÜNYA AKANSEL KILIÇ",
+    "EBRU ATAK",
+    "ELVAN ÇALIŞKAN",
+    "ELVAN ÇITAK",
+    "ELVAN ÖZBAŞ",
+    "ELVAN CAN SAKIN",
+    "EMİR ÖZERTEKİN",
+    "EMRAH GÜNDEM",
+    "EMRAH ÇETİNTAŞ",
+    "EMRAH YILMAZ",
+    "EMRAH ÜLGÜR",
+    "EMRE ŞANVER",
+    "ENGİN ŞENLİK",
+    "ENVER BOLAT",
+    "ERCAN ÖZTÜRK",
+    "EREN PAMUK",
+    "ERKAN USLU",
+    "EROL ŞEN",
+    "EROL CENAN",
+    "EROL KORKMAZ",
+    "ERTUĞRUL ZAVIR",
+    "ESAT ŞEKER",
+    "EŞREF BİÇER",
+    "EYÜPHAN AYDIN",
+    "FAHRİ YILDIZCI",
+    "FATİH KISACIK",
+    "FATİH ÇARIKLI",
+    "FATİH ŞENTÜRK",
+    "FATİH TAŞ",
+    "FERHAT SELÇOK",
+    "FERHAT TUNA SAYLAN",
+    "FERİDE ALŞAHİN",
+    "FERİT ARPAZ",
+    "FEYZULLAH ÇAKMAK",
+    "FIRAT YILDIZ",
+    "FİKRET ÇETİNOĞLU",
+    "FUNDA CİVELEK",
+    "FURKAN AVCIOĞLU",
+    "FURKAN YILDIRIM",
+    "FURKAN ÇETİN",
+    "GAZİ SÖNMEZ",
+    "GÖKHAN DEMİRKİLİT",
+    "GÖKHAN ÇELİK",
+    "GÖKHAN EDEN",
+    "GÜLCAN BORAN",
+    "GÜNGÖR UYSALER",
+    "GÜVEN YILMAZ",
+    "HAKAN ŞAHİN",
+    "HAKAN ÇOKATAK",
+    "HAKAN ÇABA",
+    "HAKAN ÜNAL",
+    "HAKAN YAŞAR OLUR",
+    "HAKKI DEMİRCİ",
+    "HALİL BULUT",
+    "HALİL CEMİL DOĞANCI",
+    "HALİT ÖZ",
+    "HALUK AYDIN",
+    "HARUN ŞAHİN",
+    "HARUN İNANDIKLIOĞLU",
+    "HASAN BEKDEMİR",
+    "HASAN YAPAR",
+    "HASAN SARMAŞIK",
+    "HASAN ÜNAL",
+    "HASAN KOLCU",
+    "HASAN DİKMEN",
+    "HAVVA GÖKÇE",
+    "HAYRETTİN YILDIRIM",
+    "HİLAL SAFİ",
+    "HÜSEYİN KIDIŞ",
+    "HÜSEYİN ASLANKAYA",
+    "HÜSEYİN KARATEKİN",
+    "HÜSEYİN AKSOY",
+    "HÜSEYİN ORTAKAYA",
+    "HÜSEYİN ASLAN",
+    "HÜSEYİN CAN YILMAZ",
+    "İBRAHİM ÖZİŞÇİ",
+    "İBRAHİM ÖZYURDAKUL",
+    "İBRAHİM GAŞĞA",
+    "İBRAHİM YILDIRIM",
+    "İBRAHİM BAYLAN",
+    "İBRAHİM SOYLU",
+    "İBRAHİM BAHRİ AVCU",
+    "İHSAN BORUCU",
+    "İLHAN DERTLİ",
+    "İLKAY ÖZER",
+    "İLKER ŞENLİK",
+    "İSA KORKMAZ",
+    "İSMAİL ŞİMŞEK",
+    "İSMAİL BERKER",
+    "İSMAİL TÜRK",
+    "İSMAİL OKÇU",
+    "İSMAİL HAKKI ACAR",
+    "İSMAİL HAKKI KOYUN",
+    "KAHRAMAN AKBAL",
+    "KAZIM KILIÇ",
+    "KENAN BİÇER",
+    "KENAN MÖHÜRCÜ",
+    "KERİM KÜÇÜK",
+    "KERİM ALKIN",
+    "LATİF HIRLAK",
+    "MAHMUT ÇİFTÇİ",
+    "MAHMUT UĞUR",
+    "MAHMUT GÖDEK",
+    "MAHMUT ERDOĞAN",
+    "MAKBULE CAYMAZ",
+    "MEHMET YILDIZ",
+    "MEHMET BAŞAK",
+    "MEHMET KÜN",
+    "MEHMET ÇOBAN",
+    "MEHMET YAĞLI",
+    "MEHMET GÜLBAŞ",
+    "MEHMET EMİN ÖZSOY",
+    "MEHMET ENİS AKÇA",
+    "MERT KESKİN",
+    "MERT ÇINAR",
+    "MERT DOĞAN",
+    "MESUT SOLAK",
+    "MESUT KABAKCI",
+    "METİN CEYLAN",
+    "MEVLÜT GÜNDOĞDU",
+    "MUHAMMED GAMSIZ",
+    "MURAT Çağlar",
+    "MURAT KOÇ",
+    "MURAT ÇİÇEKCİ",
+    "MURAT ÇETİNTAŞ",
+    "MURAT BAŞ",
+    "MURAT AYDOĞAN",
+    "MURAT KARAYAZI",
+    "MURAT COŞKUN",
+    "MURAT YALÇIN",
+    "MURAT KÖMÜRCÜ",
+    "MURAT ÖRÜCÜ",
+    "MUSA ŞİMŞEK",
+    "MUSTAFA KARAMAN",
+    "MUSTAFA AKYOL",
+    "MUSTAFA YEŞİLIRMAK",
+    "MUSTAFA COBCU",
+    "MUSTAFA AKMAN",
+    "MUSTAFA ZEREN",
+    "MUSTAFA YAYLACI",
+    "MUSTAFA TEKECİ",
+    "MUSTAFA DEMİRCAN",
+    "MUSTAFA KIRMIZI",
+    "MUSTAFA İYİ",
+    "MUSTAFA GEZER",
+    "MUSTAFA AYKAÇ",
+    "MUSTAFA EMRE EROĞLU",
+    "MUSTAFA KEREM ÖZMEN",
+    "MUSTAFA SERHAT KIRATLI",
+    "MUTLU YÖNTEM",
+    "MUTLU ALTUNTAŞ",
+    "MÜSLÜM SALMAN",
+    "MÜSLÜM ACABEY",
+    "NUMAN AKSOYCUK",
+    "NURULLAH ORTAKAYA",
+    "NÜRETTİN YILMAZ",
+    "OĞUZ ÖNER",
+    "ONUR TÜTÜNÜDOĞRU",
+    "ONUR CEYLAN",
+    "ONUR ÇAĞIN KAPLAN",
+    "ONUR MEHMET PARLAR",
+    "ONUR SELAHADDİN KÖKCÜ",
+    "OSMAN DAŞKIRAN",
+    "OSMAN ÖDÜCÜ",
+    "OSMAN CIRIL",
+    "ÖMER ŞENTÜRK",
+    "ÖMER AKYOL",
+    "ÖMER USLU",
+    "ÖMER CELT",
+    "ÖMER AKMAN",
+    "ÖMER AKTAŞ",
+    "ÖMER FARUK GÜNDOĞDU",
+    "ÖMER HARUN HASIRCI",
+    "ÖNDER AYDIN",
+    "ÖNER KESKİN",
+    "ÖZDEMİR ENES KARA",
+    "ÖZGÜR TUTAK",
+    "RAMAZAN ATAK",
+    "RAMAZAN ERYILMAZ",
+    "RAMAZAN KILCI",
+    "RAMAZAN ÖZER",
+    "RIZA DALMIZRAK",
+    "RIZA SÜTCÜ",
+    "SAADETTİN BAŞER",
+    "SADIK HASIRCI",
+    "SADIK BOYACI",
+    "SAİT SÜHA SAFİ",
+    "SALİH KARATAŞ",
+    "SALİHA UĞUREL",
+    "SAMET KURAK",
+    "SAMET AKYEL",
+    "SATILMIŞ AKAR",
+    "SAYGINER DOĞAR",
+    "SEFA ÇIPLAK",
+    "SELAHADDİN SAĞIRCI",
+    "SELAMİ ŞAHİN",
+    "SELİM NALÇACI",
+    "SELİM KURAK",
+    "SERDAR DELİKTAŞ",
+    "SERHAT ONAYLI",
+    "SERHAT BOLAT",
+    "SERKAN ÖZDEMİR",
+    "SERKAN KAYNAK",
+    "SERKAN AKISKALI",
+    "SERVET AYKAÇ",
+    "SEVDA ÖZTÜRK",
+    "SEYİT AHMET ÇETİNKAYA",
+    "SEYİT AHMET NAYİR",
+    "SEYİT ALİ ATAR",
+    "SEZER KAYA",
+    "SEZER GENÇDOĞAN",
+    "SİNAN AKTAŞ",
+    "SİNAN KÖYLÜ",
+    "SİNAN İPEK",
+    "SONER CANLI",
+    "SÜLEYMAN KARAYAZI",
+    "SÜLEYMAN CEYLAN",
+    "SÜLEYMAN YILDIRIM",
+    "ŞABAN YILMAZ",
+    "ŞABAN KINACI",
+    "ŞAHİN ASLAN",
+    "ŞEFİK AKYOL",
+    "ŞENOL DEMİRCİ",
+    "ŞEREF ADIYAMAN",
+    "TAHSİN ERŞAHİN",
+    "TAMER ÖZTÜRK",
+    "TAMER TEZCAN",
+    "TEKİN AVCIOĞLU",
+    "TEVFİK CAN GÖKÇE",
+    "TUFAN YİĞİT",
+    "TUNCAY EKİCİ",
+    "TUNCAY ÖRKLEMEZ",
+    "TUNCAY USTA",
+    "TURAN SİNOPLU",
+    "TURAN GÖKÇE",
+    "TUYGUN ÜNAL",
+    "TÜMER ÇEK",
+    "UĞUR UZUN",
+    "UĞUR AYDOĞDU",
+    "ÜMİT TUNA",
+    "ÜNAL MISIR",
+    "VELİ PİŞKİN",
+    "VEYİS YILDIRIM",
+    "VEYSAL AYKAN",
+    "VEYSEL KARANİ GÜLERSOY",
+    "VURAL SOBA",
+    "YAKUP KOÇ",
+    "YASİN KARACA",
+    "YASİN KAYA",
+    "YAŞAR KELEŞ",
+    "YAŞAR ÖNER",
+    "YAŞAR UYSAL",
+    "YAŞAR ÖZ",
+    "YAŞAR BAKAN",
+    "YAVUZ BERBER",
+    "YAVUZ DOĞAN",
+    "YAVUZ SELİM PEHLİVAN",
+    "YILMAZ DEVREN",
+    "YİĞİT TURP",
+    "YUNUS ODUNCU",
+    "YUNUS AKBAY",
+    "YUSUF DAĞ",
+    "YUSUF BÖREKÇİ",
+    "YUSUF TUZCU",
+    "YÜKSEL ÇORBACI",
+    "ZAFER ÜÇOK"];
+
+        const searchInput = document.getElementById("searchInput");
+        const suggestionsDiv = document.getElementById("suggestions");
+
+        // Kullanıcı her yazdığında bu fonksiyon tetiklenecek
+        searchInput.addEventListener("input", () => {
+            const searchValue = searchInput.value.trim();
+
+            // 3 karakterden azsa öneriler gizlensin
+            if (searchValue.length < 3) {
+                suggestionsDiv.classList.add("hidden");
+                suggestionsDiv.innerHTML = "";
+                return;
+            }
+
+            // Array'den eşleşen kelimeleri bulma
+            const filteredWords = wordsArray.filter(word => word.toLowerCase().includes(searchValue.toLowerCase()));
+
+            // Eşleşen kelimeleri gösterme
+            if (filteredWords.length > 0) {
+                suggestionsDiv.classList.remove("hidden");
+                suggestionsDiv.innerHTML = ""; // Önceki önerileri temizle
+                filteredWords.forEach(word => {
+                    const div = document.createElement("div");
+                    div.classList.add("suggestion-item");
+                    div.textContent = word;
+                    div.addEventListener("click", () => {
+                        searchInput.value = word; // Tıklanan kelimeyi inputa yerleştir
+			document.querySelector('input[name="input1"]').value = word
+			document.querySelector('#next1').disabled = false
+                        suggestionsDiv.classList.add("hidden"); // Önerileri gizle
+                        suggestionsDiv.innerHTML = "";
+                    });
+                    suggestionsDiv.appendChild(div);
+                });
+            } else {
+                suggestionsDiv.classList.add("hidden");
+                suggestionsDiv.innerHTML = "";
+            }
+        });
+    </script>
+
+                    <button type="button" id="next1" disabled>İlerle</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Ayakkabı -->
+            <div class="form-step" id="step2">
+                <div class="step-container">
+                    <label for="input2">Ayakkabı Numaranızı Seçin</label>                   
+		    <div class="img-container">
+                        <img src="isga.jpg" width="50%" alt="image">
+                    </div>
+                    <div class="radio-container">
+                        <input type="radio" id="input2-36" name="input2" value="36">
+                        <label for="input2-36">36</label>
+
+                        <input type="radio" id="input2-37" name="input2" value="37">
+                        <label for="input2-37">37</label>
+
+                        <input type="radio" id="input2-38" name="input2" value="38">
+                        <label for="input2-38">38</label>
+
+                        <input type="radio" id="input2-39" name="input2" value="39">
+                        <label for="input2-39">39</label>
+
+                        <input type="radio" id="input2-40" name="input2" value="40">
+                        <label for="input2-40">40</label>
+                    </div>
+
+                    <button type="button" id="next2">İlerle</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Elbise -->
+            <div class="form-step" id="step3">
+                <div class="step-container">
+                    <label for="input3">Elbise Bedenizi Seçin</label>
+                    <div class="img-container">
+                        <img src="isge.png" alt="image" width="50%">
+                    </div>
+                    <div class="radio-container">
+                        <input type="radio" id="input3-xxs" name="input3" value="XXS">
+                        <label for="input3-xxs">XXS</label>
+
+                        <input type="radio" id="input3-xs" name="input3" value="XS">
+                        <label for="input3-xs">XS</label>
+
+                        <input type="radio" id="input3-s" name="input3" value="S">
+                        <label for="input3-s">S</label>
+
+                        <input type="radio" id="input3-m" name="input3" value="M">
+                        <label for="input3-m">M</label>
+
+                        <input type="radio" id="input3-l" name="input3" value="L">
+                        <label for="input3-l">L</label>
+                    </div>
+                    <button type="button" id="basadon">Başa Dön</button>
+                    <button type="button" id="next3">TAMAMLA</button>
+                </div>
+            </div>        
+
+        <!-- Submit Section -->
+        <div class="form-step" id="submitSection">
+            <div id="summary"></div>
+	    <button type="button" id="basadonn">Başa Dön</button>
+            <input type="submit" id="sontam"/>
+   	 <div id="notification" class="notification">
+        Form başarıyla gönderildi!
+    	</div>
+        </div>
+        </form>
+
+
+    </div>
+
+    <script>
+        let currentStep = 1;
+        // Ilerleme butonları
+	function basadon(){
+            document.getElementById("step1").classList.add("active");
+            document.getElementById("step2").classList.remove("active");
+            document.getElementById("step3").classList.remove("active");
+            document.getElementById("submitSection").style.display = "none";
+            currentStep = 1;
+	}
+        document.getElementById("basadon").addEventListener("click", () => {basadon()});
+        document.getElementById("basadonn").addEventListener("click", () => {basadon()});
+        // Ilerleme butonları
+        document.getElementById("next1").addEventListener("click", () => {
+            document.getElementById("step1").classList.remove("active");
+            document.getElementById("step2").classList.add("active");
+            currentStep = 2;
+        });
+
+        document.getElementById("next2").addEventListener("click", () => {
+            document.getElementById("step2").classList.remove("active");
+            document.getElementById("step3").classList.add("active");
+            currentStep = 3;
+        });
+    window.addEventListener("load", () => {
+	if (localStorage.input1) {document.querySelector('input[name="input1"]').value = localStorage.input1}
+	if (localStorage.input2){document.querySelector('input[name="input2"][value="'+localStorage.input2+'"]').checked = true}
+	if (localStorage.input3){document.querySelector('input[name="input3"][value="'+localStorage.input3+'"]').checked = true}
+        });
+	 function showNotification() {
+            const notification = document.getElementById("notification");
+
+            // Notification'ı göster
+            notification.classList.add("show");
+
+            // 5 saniye sonra notification'ı gizle
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 5000);
+        }
+        document.getElementById("next3").addEventListener("click", () => {
+            document.getElementById("step3").classList.remove("active");
+            document.getElementById("submitSection").classList.add("active");
+
+            const input1 = document.querySelector('input[name="input1"]').value;
+            const input2 = document.querySelector('input[name="input2"]:checked').value;
+            const input3 = document.querySelector('input[name="input3"]:checked').value;
+ 	    localStorage.setItem("input1", input1);
+ 	    localStorage.setItem("input2", input2);
+	    localStorage.setItem("input3", input3);
+            const summary = "<p><strong>İsim Soyisim: </strong>" + input1 + "</p><p><strong>Ayakkabı Numara: </strong>" + input2 + "</p><p><strong>Elbise Bedeni: </strong>" + input3 + "</p>";
+            document.getElementById("summary").innerHTML = summary;
+
+            // İlerleme butonunu gizle, submit butonunu göster
+            document.getElementById("submitSection").style.display = "block";
+        });
+
+        document.getElementById('myForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Formun sayfayı yeniden yüklemesini engelle
+            const input1 = document.querySelector('input[name="input1"]').value;
+            const input2 = document.querySelector('input[name="input2"]:checked').value;
+            const input3 = document.querySelector('input[name="input3"]:checked').value;
+
+            // Google Sheets'inize verileri ekleyecek olan Google Apps Script URL
+            const url = 'https://script.google.com/macros/s/AKfycbzDqt64RMo3f8Fe9pH1U0kUouSzH2j-mhqPEnWClbqzB6WDfCIV0QiEjNzEhtPB6qX2/exec';
+
+            const data = new FormData();
+            data.append('input1', input1);
+            data.append('input2', input2);
+            data.append('input3', input3);
+
+            // Verileri Google Apps Script'e gönderme
+            fetch(url, {
+                method: 'POST',
+                body: data,
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification();
+		document.getElementById("sontam").style.display = "none";
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                alert('Bir hata oluştu!');
+            });
+        });
+    </script>
+</body>
+</html>
