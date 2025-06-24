@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Sheets'e Veri Gönder</title>
   <style>
     * {
@@ -27,6 +28,7 @@
     h2 {
       text-align: center;
       color: #333;
+      font-size: 20px;
     }
 
     .row {
@@ -78,11 +80,34 @@
       background-color: #0d47a1;
     }
 
+    .btn-secondary {
+      background: linear-gradient(135deg, #4CAF50, #388E3C);
+    }
+
     #durum {
       margin-top: 15px;
       text-align: center;
       color: green;
       font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .col {
+        flex: 1 1 100%;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      button {
+        font-size: 15px;
+        padding: 10px;
+      }
+
+      input, textarea {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -90,7 +115,7 @@
   <div class="container">
     <h2>Uygunsuzluk Bildirimi</h2>
 
-    <!-- Kamera ve Konum yan yana -->
+    <!-- Kamera ve Konum yan yana (mobilde alt alta) -->
     <div class="row">
       <div class="col">
         <label for="resim">Kamera ile Fotoğraf</label>
@@ -102,7 +127,7 @@
       </div>
     </div>
 
-    <!-- Diğer alanlar alt alta -->
+    <!-- Diğer alanlar -->
     <div class="row">
       <div class="col" style="flex: 1 1 100%;">
         <label for="uygunsuzluk">Uygunsuzluk</label>
@@ -114,8 +139,9 @@
       </div>
     </div>
 
+    <!-- Butonlar -->
     <button onclick="veriGonder()">Google Sheet'e Ekle</button>
-    <button onclick="location.href='vericek.html'" style="background: linear-gradient(135deg, #4CAF50, #388E3C);">Listeyi Gör</button>
+    <button onclick="location.href='vericek.html'" class="btn-secondary">Listeyi Gör</button>
     <p id="durum"></p>
   </div>
 
@@ -159,10 +185,8 @@
         });
       };
 
-      reader.readAsDataURL(file); // resmi base64'e çevir
+      reader.readAsDataURL(file);
     }
   </script>
 </body>
 </html>
-
- 
