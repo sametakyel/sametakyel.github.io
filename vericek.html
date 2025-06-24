@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sheets Verileri</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    img {
+      max-width: 150px;
+      max-height: 150px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Google Sheets'ten Gelen Veriler</h2>
+  <table id="veriTablosu">
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>Resim</th>
+        <th>Konum</th>
+        <th>Uygunsuzluk</th>
+        <th>Öneri</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- JS ile doldurulacak -->
+    </tbody>
+  </table>
+
+  <script>
+    const sheetURL = "https://script.google.com/macros/s/AKfycbxhHwjV2o6ycM7lnZQv5bAb5Vzknr0QnX-uojRe6iyL995dCB81ukWkCZFtRy-4cZfW/exec";
+
+    fetch(sheetURL)
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById("veriTablosu").querySelector("tbody");
+
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+
+          const tdTarih = document.createElement("td");
+          tdTarih.textContent = row.tarih;
+          tr.appendChild(tdTarih);
+
+          const tdResim = document.createElement("td");
+          const img = document.createElement("img");
+
+          // Base64 mi yoksa URL mi kontrol et
+          if (row.resim.startsWith("data:image")) {
+            img.src = row.resim;
+          } else {
+            img.src = row.resim;
+          }
+          tdResim.appendChild(img);
+          tr.appendChild(tdResim);
+
+          const tdKonum = document.createElement("td");
+          tdKonum.textContent = row.konum;
+          tr.appendChild(tdKonum);
+
+          const tdUygunsuzluk = document.createElement("td");
+          tdUygunsuzluk.textContent = row.uygunsuzluk;
+          tr.appendChild(tdUygunsuzluk);
+
+          const tdOneri = document.createElement("td");
+          tdOneri.textContent = row.oneri;
+          tr.appendChild(tdOneri);
+
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        console.error("Veri alınamadı:", err);
+        alert("Google Sheets verilerine erişilemedi.");
+      });
+  </script>
+
+</body>
+</html>

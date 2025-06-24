@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sheets'e Veri Gönder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .col {
+      flex: 1 1 48%;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+      color: #444;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #0d47a1;
+    }
+
+    #durum {
+      margin-top: 15px;
+      text-align: center;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Uygunsuzluk Bildirimi</h2>
+
+    <!-- Kamera ve Konum yan yana -->
+    <div class="row">
+      <div class="col">
+        <label for="resim">Kamera ile Fotoğraf</label>
+        <input type="file" id="resim" accept="image/*" capture="environment">
+      </div>
+      <div class="col">
+        <label for="konum">Konum</label>
+        <input type="text" id="konum" placeholder="Konum bilgisi">
+      </div>
+    </div>
+
+    <!-- Diğer alanlar alt alta -->
+    <div class="row">
+      <div class="col" style="flex: 1 1 100%;">
+        <label for="uygunsuzluk">Uygunsuzluk</label>
+        <textarea id="uygunsuzluk" rows="3" placeholder="Uygunsuzluk açıklaması"></textarea>
+      </div>
+      <div class="col" style="flex: 1 1 100%;">
+        <label for="oneri">Öneri</label>
+        <textarea id="oneri" rows="3" placeholder="İyileştirme önerisi"></textarea>
+      </div>
+    </div>
+
+    <button onclick="veriGonder()">Google Sheet'e Ekle</button>
+    <button onclick="location.href='vericek.html'" style="background: linear-gradient(135deg, #4CAF50, #388E3C);">Listeyi Gör</button>
+    <p id="durum"></p>
+  </div>
+
+  <script>
+    function veriGonder() {
+      const konum = document.getElementById("konum").value.trim();
+      const uygunsuzluk = document.getElementById("uygunsuzluk").value.trim();
+      const oneri = document.getElementById("oneri").value.trim();
+      const fileInput = document.getElementById("resim");
+      const file = fileInput.files[0];
+
+      if (!file || !konum || !uygunsuzluk || !oneri) {
+        document.getElementById("durum").innerText = "Lütfen tüm alanları doldurun.";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        const base64Image = reader.result;
+
+        fetch('https://script.google.com/macros/s/AKfycbxhHwjV2o6ycM7lnZQv5bAb5Vzknr0QnX-uojRe6iyL995dCB81ukWkCZFtRy-4cZfW/exec', {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            resim: base64Image,
+            konum: konum,
+            uygunsuzluk: uygunsuzluk,
+            oneri: oneri
+          })
+        }).then(() => {
+          document.getElementById("durum").innerText = "Veri başarıyla gönderildi!";
+          fileInput.value = '';
+          document.getElementById("konum").value = '';
+          document.getElementById("uygunsuzluk").value = '';
+          document.getElementById("oneri").value = '';
+        }).catch(() => {
+          document.getElementById("durum").innerText = "Hata oluştu.";
+        });
+      };
+
+      reader.readAsDataURL(file); // resmi base64'e çevir
+    }
+  </script>
+</body>
+</html>
+
+ 
