@@ -56,20 +56,37 @@ async function tespitEt() {
         pred.bottomRight[1] - pred.topLeft[1]
       ];
 
-      // Basit kural: kafa bölgesinin üst kısmı sarı mı (barete benziyor mu?)
-      let imgData = ctx.getImageData(x, y, width, height / 3).data;
-      let yellowPixels = 0;
+      const üstBölgeYükseklik = height / 3;
+      const imgData = ctx.getImageData(x, y, width, üstBölgeYükseklik).data;
+
+      let renkliPixel = 0;
+      let toplamPixel = width * (üstBölgeYükseklik | 0);
+
       for (let i = 0; i < imgData.length; i += 4) {
         let r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
-        if (r > 180 && g > 180 && b < 100) yellowPixels++;
+
+        // Renk filtreleri: sarı, beyaz, mavi tonları
+        const sarı = r > 180 && g > 180 && b < 130;
+        const beyaz = r > 200 && g > 200 && b > 200;
+        const mavi = r < 100 && g < 150 && b > 170;
+
+        if (sarı || beyaz || mavi) {
+          renkliPixel++;
+        }
       }
 
-      const oran = yellowPixels / (imgData.length / 4);
-      if (oran > 0.1) baretVar = true;
+      const oran = renkliPixel / toplamPixel;
+
+      // Ek kriter: bölgenin düz blok (baret gibi) olması için yoğunluk yüksek olmalı
+      if (oran > 0.15) baretVar = true;
 
       ctx.strokeStyle = baretVar ? "green" : "red";
       ctx.lineWidth = 3;
       ctx.strokeRect(x, y, width, height);
+
+      ctx.font = "14px sans-serif";
+      ctx.fillStyle = baretVar ? "green" : "red";
+      ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", x, y - 5);
     });
 
     uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
@@ -78,6 +95,7 @@ async function tespitEt() {
 }
 
 baslat();
+
 
 </script>
 </body>
