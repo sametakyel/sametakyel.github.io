@@ -20,7 +20,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
   <script>
-    let video = document.getElementById('video');
+ let video = document.getElementById('video');
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     let uyari = document.getElementById('uyari');
@@ -39,70 +39,66 @@
     }
 
     async function tespitEt() {
+      const returnTensors = false;
+
       while (true) {
-        const predictions = await model.estimateFaces(video, false);
+        const predictions = await model.estimateFaces(video, returnTensors);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         let baretVar = false;
 
         predictions.forEach(pred => {
-          const [x1, y1] = pred.topLeft;
-          const [x2, y2] = pred.bottomRight;
+          let [x, y] = pred.topLeft;
+          let [x2, y2] = pred.bottomRight;
 
-          const yüzGenişlik = x2 - x1;
-          const yüzYükseklik = y2 - y1;
+          let width = x2 - x;
+          let height = y2 - y;
 
-          // 🔴 Yeni ROI: yüzün üst 30%'u + yukarıya genişletme
-          const roiX = x1 - yüzGenişlik * 0.2;
-          const roiY = y1 - yüzYükseklik * 0.6;
-          const roiWidth = yüzGenişlik * 1.4;
-          const roiHeight = yüzYükseklik * 0.5;
+          // Sadece yüzün üst kısmını + biraz yukarıyı al (baretin takıldığı bölge)
+          const roiX = x;
+          const roiY = y - height * 0.4;  // yukarı genişletme
+          const roiWidth = width;
+          const roiHeight = height * 0.5; // sadece üst kısmı al
 
-          // 📏 Güvenli sınırlar
           const safeX = Math.max(0, roiX);
           const safeY = Math.max(0, roiY);
           const safeW = Math.min(canvas.width - safeX, roiWidth);
           const safeH = Math.min(canvas.height - safeY, roiHeight);
 
-          const imageData = ctx.getImageData(safeX, safeY, safeW, safeH).data;
+          const imgData = ctx.getImageData(safeX, safeY, safeW, safeH).data;
 
-          let baretPixelleri = 0;
-          const toplamPixeller = safeW * safeH;
+          let renkliPixel = 0;
+          const toplamPixel = safeW * safeH;
 
-          for (let i = 0; i < imageData.length; i += 4) {
-            const r = imageData[i];
-            const g = imageData[i + 1];
-            const b = imageData[i + 2];
-
-            const sari = r > 180 && g > 180 && b < 130;
-            const beyaz = r > 210 && g > 210 && b > 210;
-            const mavi = r < 100 && g < 140 && b > 170;
-
+          for (let i = 0; i < imgData.length; i += 4) {
+            const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
             const brightness = (r + g + b) / 3;
 
-            // Parlaklık eşiği ile renk kontrolü
-            if ((sari || beyaz || mavi) && brightness > 80) {
-              baretPixelleri++;
+            const sari = r > 180 && g > 180 && b < 130;
+            const beyaz = r > 200 && g > 200 && b > 200;
+            const mavi = r < 100 && g < 150 && b > 170;
+
+            // Brightness filtresi ile birlikte renk kontrolü
+            if ((sari || beyaz || mavi) && brightness > 60 && brightness < 240) {
+              renkliPixel++;
             }
           }
 
-          const oran = baretPixelleri / toplamPixeller;
+          const oran = renkliPixel / toplamPixel;
+          if (oran > 0.12) baretVar = true;
 
-          if (oran > 0.20) baretVar = true; // eşik ayarlı
-
-          // 🟥 ROI çerçevesi
-          ctx.strokeStyle = baretVar ? 'green' : 'red';
+          // Görsel kutu çizimi (kırmızı veya yeşil)
+          ctx.strokeStyle = baretVar ? "green" : "red";
           ctx.lineWidth = 3;
           ctx.strokeRect(safeX, safeY, safeW, safeH);
 
-          ctx.font = "18px Arial";
-          ctx.fillStyle = baretVar ? 'green' : 'red';
-          ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 10);
+          ctx.font = "14px sans-serif";
+          ctx.fillStyle = baretVar ? "green" : "red";
+          ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 5);
         });
 
-        uyari.textContent = baretVar ? "" : "❌ Baret tespit edilemedi!";
-
-        await new Promise(resolve => setTimeout(resolve, 500));
+        uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
+        await new Promise(r => setTimeout(r, 500));
       }
     }
 
