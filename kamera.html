@@ -20,7 +20,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
   <script>
-    const video = document.getElementById('video');
+  const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const uyari = document.getElementById('uyari');
@@ -38,23 +38,6 @@
       };
     }
 
-    function ortalamaRGB(data) {
-      let r = 0, g = 0, b = 0;
-      let count = data.length / 4;
-      for (let i = 0; i < data.length; i += 4) {
-        r += data[i]; g += data[i + 1]; b += data[i + 2];
-      }
-      return [r / count, g / count, b / count];
-    }
-
-    function renkFarki(rgb1, rgb2) {
-      return Math.sqrt(
-        (rgb1[0] - rgb2[0]) ** 2 +
-        (rgb1[1] - rgb2[1]) ** 2 +
-        (rgb1[2] - rgb2[2]) ** 2
-      );
-    }
-
     async function tespitEt() {
       while (true) {
         const predictions = await model.estimateFaces(video, false);
@@ -65,51 +48,55 @@
         predictions.forEach(pred => {
           const [x1, y1] = pred.topLeft;
           const [x2, y2] = pred.bottomRight;
-
           const yüzW = x2 - x1;
           const yüzH = y2 - y1;
 
-          // Yüz bölgesi
-          const yüzX = x1 + yüzW * 0.2;
-          const yüzY = y1 + yüzH * 0.4;
-          const yüzW2 = yüzW * 0.6;
-          const yüzH2 = yüzH * 0.5;
-          const yüzData = ctx.getImageData(yüzX, yüzY, yüzW2, yüzH2).data;
-          const ciltRenk = ortalamaRGB(yüzData);
-
-          // Baret kontrol bölgesi (kafa üstü)
-          const roiX = x1 - yüzW * 0.2;
+          // 🔴 ROI = kafa üstü bölge
+          const roiX = x1 - yüzW * 0.1;
           const roiY = y1 - yüzH * 0.6;
-          const roiW = yüzW * 1.4;
-          const roiH = yüzH * 0.5;
+          const roiW = yüzW * 1.2;
+          const roiH = yüzH * 0.45;
 
           const safeX = Math.max(0, roiX);
           const safeY = Math.max(0, roiY);
           const safeW = Math.min(canvas.width - safeX, roiW);
           const safeH = Math.min(canvas.height - safeY, roiH);
 
-          const data = ctx.getImageData(safeX, safeY, safeW, safeH).data;
+          const imgData = ctx.getImageData(safeX, safeY, safeW, safeH).data;
+          let beyazSarıMavi = 0;
+          let siyahSaçTonu = 0;
+          const toplam = safeW * safeH;
 
-          let farklıPixel = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2];
-            const fark = renkFarki([r,g,b], ciltRenk);
-            if (fark > 80) farklıPixel++;
+          for (let i = 0; i < imgData.length; i += 4) {
+            const r = imgData[i], g = imgData[i+1], b = imgData[i+2];
+            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+            const beyaz = r > 210 && g > 210 && b > 210;
+            const sarı = r > 190 && g > 180 && b < 150;
+            const mavi = r < 100 && g < 140 && b > 170;
+            const koyu = brightness < 80 && r < 80 && g < 80 && b < 80;
+
+            if (beyaz || sarı || mavi) beyazSarıMavi++;
+            if (koyu) siyahSaçTonu++;
           }
 
-          const oran = farklıPixel / (safeW * safeH);
-          if (oran > 0.25) baretVar = true;
+          const oranBaret = beyazSarıMavi / toplam;
+          const oranSiyah = siyahSaçTonu / toplam;
 
-          ctx.strokeStyle = baretVar ? "green" : "red";
+          // Karar: renkli yoğunluk yüksek ve siyah düşükse baret vardır
+          if (oranBaret > 0.20 && oranSiyah < 0.35) baretVar = true;
+
+          // 🔲 Çizim
+          ctx.strokeStyle = baretVar ? 'green' : 'red';
           ctx.lineWidth = 3;
           ctx.strokeRect(safeX, safeY, safeW, safeH);
           ctx.font = "16px sans-serif";
-          ctx.fillStyle = baretVar ? "green" : "red";
+          ctx.fillStyle = baretVar ? 'green' : 'red';
           ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 8);
         });
 
         uyari.textContent = baretVar ? "" : "❌ Baret tespit edilemedi!";
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(r => setTimeout(r, 500));
       }
     }
 
