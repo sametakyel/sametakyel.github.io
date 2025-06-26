@@ -20,87 +20,85 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
   <script>
-  const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const uyari = document.getElementById('uyari');
-    let model;
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+let uyari = document.getElementById('uyari');
+let model;
 
-    async function baslat() {
-      model = await blazeface.load();
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
+async function baslat() {
+  model = await blazeface.load();
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
 
-      video.onloadedmetadata = () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        tespitEt();
-      };
-    }
+  video.onloadedmetadata = () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    tespitEt();
+  };
+}
 
-    async function tespitEt() {
-      while (true) {
-        const predictions = await model.estimateFaces(video, false);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+async function tespitEt() {
+  const returnTensors = false;
 
-        let baretVar = false;
+  while (true) {
+    const predictions = await model.estimateFaces(video, returnTensors);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        predictions.forEach(pred => {
-          const [x1, y1] = pred.topLeft;
-          const [x2, y2] = pred.bottomRight;
-          const yüzW = x2 - x1;
-          const yüzH = y2 - y1;
+    let baretVar = false;
 
-          // 🔴 ROI = kafa üstü bölge
-          const roiX = x1 - yüzW * 0.1;
-          const roiY = y1 - yüzH * 0.6;
-          const roiW = yüzW * 1.2;
-          const roiH = yüzH * 0.45;
+    predictions.forEach(pred => {
+      let [x, y] = pred.topLeft;
+      let [x2, y2] = pred.bottomRight;
 
-          const safeX = Math.max(0, roiX);
-          const safeY = Math.max(0, roiY);
-          const safeW = Math.min(canvas.width - safeX, roiW);
-          const safeH = Math.min(canvas.height - safeY, roiH);
+      let width = x2 - x;
+      let height = y2 - y;
 
-          const imgData = ctx.getImageData(safeX, safeY, safeW, safeH).data;
-          let beyazSarıMavi = 0;
-          let siyahSaçTonu = 0;
-          const toplam = safeW * safeH;
+      // 📌 Sadece yüzün üst kısmını + biraz yukarıyı al (baretin takıldığı bölge)
+      const roiX = x;
+      const roiY = y - height * 0.4;  // yukarıya doğru genişlet
+      const roiWidth = width;
+      const roiHeight = height * 0.5; // sadece üst kısmı al
 
-          for (let i = 0; i < imgData.length; i += 4) {
-            const r = imgData[i], g = imgData[i+1], b = imgData[i+2];
-            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+      const safeX = Math.max(0, roiX);
+      const safeY = Math.max(0, roiY);
+      const safeW = Math.min(canvas.width - safeX, roiWidth);
+      const safeH = Math.min(canvas.height - safeY, roiHeight);
 
-            const beyaz = r > 210 && g > 210 && b > 210;
-            const sarı = r > 190 && g > 180 && b < 150;
-            const mavi = r < 100 && g < 140 && b > 170;
-            const koyu = brightness < 80 && r < 80 && g < 80 && b < 80;
+      const imgData = ctx.getImageData(safeX, safeY, safeW, safeH).data;
 
-            if (beyaz || sarı || mavi) beyazSarıMavi++;
-            if (koyu) siyahSaçTonu++;
-          }
+      let renkliPixel = 0;
+      const toplamPixel = safeW * safeH;
 
-          const oranBaret = beyazSarıMavi / toplam;
-          const oranSiyah = siyahSaçTonu / toplam;
+      for (let i = 0; i < imgData.length; i += 4) {
+        const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
 
-          // Karar: renkli yoğunluk yüksek ve siyah düşükse baret vardır
-          if (oranBaret > 0.20 && oranSiyah < 0.35) baretVar = true;
+        const sarı = r > 180 && g > 180 && b < 130;
+        const beyaz = r > 200 && g > 200 && b > 200;
+        const mavi = r < 100 && g < 150 && b > 170;
 
-          // 🔲 Çizim
-          ctx.strokeStyle = baretVar ? 'green' : 'red';
-          ctx.lineWidth = 3;
-          ctx.strokeRect(safeX, safeY, safeW, safeH);
-          ctx.font = "16px sans-serif";
-          ctx.fillStyle = baretVar ? 'green' : 'red';
-          ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 8);
-        });
-
-        uyari.textContent = baretVar ? "" : "❌ Baret tespit edilemedi!";
-        await new Promise(r => setTimeout(r, 500));
+        if (sarı || beyaz || mavi) renkliPixel++;
       }
-    }
 
-    baslat();
+      const oran = renkliPixel / toplamPixel;
+      if (oran > 0.12) baretVar = true;
+
+      // Görsel kutu çizimi (kırmızı veya yeşil)
+      ctx.strokeStyle = baretVar ? "green" : "red";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(safeX, safeY, safeW, safeH);
+
+      ctx.font = "14px sans-serif";
+      ctx.fillStyle = baretVar ? "green" : "red";
+      ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 5);
+    });
+
+    uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
+    await new Promise(r => setTimeout(r, 500));
+  }
+}
+
+baslat();
 </script>
 </body>
 </html>
