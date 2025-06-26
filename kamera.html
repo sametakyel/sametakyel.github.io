@@ -6,11 +6,13 @@
   <title>Baret Tespiti</title>
   <style>
     body { text-align: center; font-family: sans-serif;padding:0;margin:0 }
-    video, canvas { width: 90%; max-width: 400px;max-height:45vh; border: 1px solid #ccc; margin-top: 10px; }
+    video, canvas { position:absolute;width: 90%; max-width: 400px;max-height:95vh; border: 1px solid #ccc; margin-top: 10px; }
+    video {visibility:hidden}
     #uyari { font-size: 20px; color: red; margin-top: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
+<h2>Baret Kontrol</h2>
   <video id="video" autoplay playsinline muted></video>
   <canvas id="canvas"></canvas>
   <div id="uyari"></div>
