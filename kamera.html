@@ -23,7 +23,6 @@
 let video = document.getElementById('video');
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
-let uyari = document.getElementById('uyari');
 let model;
 
 async function baslat() {
@@ -93,7 +92,6 @@ async function tespitEt() {
       ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 5);
     });
 
-    uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
     await new Promise(r => setTimeout(r, 500));
   }
 }
