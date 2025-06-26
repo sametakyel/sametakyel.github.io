@@ -49,23 +49,35 @@ async function tespitEt() {
     let baretVar = false;
 
     predictions.forEach(pred => {
-      const [x, y, width, height] = [
-        pred.topLeft[0],
-        pred.topLeft[1],
-        pred.bottomRight[0] - pred.topLeft[0],
-        pred.bottomRight[1] - pred.topLeft[1]
-      ];
+      let [x, y] = pred.topLeft;
+      let [x2, y2] = pred.bottomRight;
 
-      const üstBölgeYükseklik = height / 3;
-      const imgData = ctx.getImageData(x, y, width, üstBölgeYükseklik).data;
+      let width = x2 - x;
+      let height = y2 - y;
+
+      // 📌 Kutuyu yukarı doğru genişletiyoruz (örneğin baretin kapsanması için)
+      const genişlikÇarpanı = 1.3; // daha geniş bir alan
+      const yükseklikÇarpanı = 1.6;
+
+      const genişletilmişX = x - (genişlikÇarpanı - 1) * width / 2;
+      const genişletilmişY = y - (yükseklikÇarpanı - 1) * height;
+      const genişletilmişWidth = width * genişlikÇarpanı;
+      const genişletilmişHeight = height * yükseklikÇarpanı;
+
+      // Bu bölgeyi analiz et
+      const imgData = ctx.getImageData(
+        Math.max(0, genişletilmişX),
+        Math.max(0, genişletilmişY),
+        Math.min(canvas.width - genişletilmişX, genişletilmişWidth),
+        Math.min(canvas.height - genişletilmişY, genişletilmişHeight)
+      ).data;
 
       let renkliPixel = 0;
-      let toplamPixel = width * (üstBölgeYükseklik | 0);
+      const toplamPixel = (genişletilmişWidth | 0) * (genişletilmişHeight | 0);
 
       for (let i = 0; i < imgData.length; i += 4) {
-        let r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+        const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
 
-        // Renk filtreleri: sarı, beyaz, mavi tonları
         const sarı = r > 180 && g > 180 && b < 130;
         const beyaz = r > 200 && g > 200 && b > 200;
         const mavi = r < 100 && g < 150 && b > 170;
@@ -76,17 +88,16 @@ async function tespitEt() {
       }
 
       const oran = renkliPixel / toplamPixel;
+      if (oran > 0.12) baretVar = true;
 
-      // Ek kriter: bölgenin düz blok (baret gibi) olması için yoğunluk yüksek olmalı
-      if (oran > 0.15) baretVar = true;
-
+      // Çerçeveyi çiz
       ctx.strokeStyle = baretVar ? "green" : "red";
       ctx.lineWidth = 3;
-      ctx.strokeRect(x, y, width, height);
+      ctx.strokeRect(genişletilmişX, genişletilmişY, genişletilmişWidth, genişletilmişHeight);
 
       ctx.font = "14px sans-serif";
       ctx.fillStyle = baretVar ? "green" : "red";
-      ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", x, y - 5);
+      ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", genişletilmişX, genişletilmişY - 5);
     });
 
     uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
@@ -95,7 +106,6 @@ async function tespitEt() {
 }
 
 baslat();
-
 
 </script>
 </body>
