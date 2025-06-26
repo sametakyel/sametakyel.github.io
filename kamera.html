@@ -20,89 +20,136 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
   <script>
- let video = document.getElementById('video');
-    let canvas = document.getElementById('canvas');
-    let ctx = canvas.getContext('2d');
-    let uyari = document.getElementById('uyari');
-    let model;
+let video = document.getElementById('video');
+  let canvas = document.getElementById('canvas');
+  let ctx = canvas.getContext('2d');
+  let uyari = document.getElementById('uyari');
+  let model;
 
-    async function baslat() {
-      model = await blazeface.load();
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
+  async function baslat() {
+    model = await blazeface.load();
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
 
-      video.onloadedmetadata = () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        tespitEt();
-      };
+    video.onloadedmetadata = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      tespitEt();
+    };
+  }
+
+  // Renk ortalaması hesaplama helper fonksiyonu
+  function renkOrtalamasi(imageData) {
+    let rTop=0, gTop=0, bTop=0;
+    let pixelSayisi = imageData.data.length / 4;
+    for(let i=0; i < imageData.data.length; i += 4){
+      rTop += imageData.data[i];
+      gTop += imageData.data[i+1];
+      bTop += imageData.data[i+2];
     }
+    return {
+      r: rTop / pixelSayisi,
+      g: gTop / pixelSayisi,
+      b: bTop / pixelSayisi
+    };
+  }
 
-    async function tespitEt() {
-      const returnTensors = false;
+  // İki renk arasındaki mesafe (Euclidean distance)
+  function renkFarki(c1, c2) {
+    return Math.sqrt(
+      (c1.r - c2.r)**2 +
+      (c1.g - c2.g)**2 +
+      (c1.b - c2.b)**2
+    );
+  }
 
-      while (true) {
-        const predictions = await model.estimateFaces(video, returnTensors);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  async function tespitEt() {
+    while(true) {
+      const predictions = await model.estimateFaces(video, false);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        let baretVar = false;
+      let baretVar = false;
 
-        predictions.forEach(pred => {
-          let [x, y] = pred.topLeft;
-          let [x2, y2] = pred.bottomRight;
+      for (let pred of predictions) {
+        let [x, y] = pred.topLeft;
+        let [x2, y2] = pred.bottomRight;
+        let width = x2 - x;
+        let height = y2 - y;
 
-          let width = x2 - x;
-          let height = y2 - y;
+        // 1) Yüz bölgesi ROI: yüzün tamamı
+        const faceSafeX = Math.max(0, x);
+        const faceSafeY = Math.max(0, y);
+        const faceSafeW = Math.min(canvas.width - faceSafeX, width);
+        const faceSafeH = Math.min(canvas.height - faceSafeY, height);
 
-          // Sadece yüzün üst kısmını + biraz yukarıyı al (baretin takıldığı bölge)
-          const roiX = x;
-          const roiY = y - height * 0.4;  // yukarı genişletme
-          const roiWidth = width;
-          const roiHeight = height * 0.5; // sadece üst kısmı al
+        const faceImgData = ctx.getImageData(faceSafeX, faceSafeY, faceSafeW, faceSafeH);
+        const faceColor = renkOrtalamasi(faceImgData);
 
-          const safeX = Math.max(0, roiX);
-          const safeY = Math.max(0, roiY);
-          const safeW = Math.min(canvas.width - safeX, roiWidth);
-          const safeH = Math.min(canvas.height - safeY, roiHeight);
+        // 2) Baret bölgesi ROI: yüzün üst kısmının biraz üstü, geniş alan
+        // Yüzün üstünden %60 yukarı, genişliği %150 alıyoruz
+        let roiX = x - width * 0.25;
+        let roiY = y - height * 0.6;
+        let roiWidth = width * 1.5;
+        let roiHeight = height * 0.5;
 
-          const imgData = ctx.getImageData(safeX, safeY, safeW, safeH).data;
+        // Canvas sınırlarına göre güvenli ROI
+        const roiSafeX = Math.max(0, roiX);
+        const roiSafeY = Math.max(0, roiY);
+        const roiSafeW = Math.min(canvas.width - roiSafeX, roiWidth);
+        const roiSafeH = Math.min(canvas.height - roiSafeY, roiHeight);
 
-          let renkliPixel = 0;
-          const toplamPixel = safeW * safeH;
+        const roiImgData = ctx.getImageData(roiSafeX, roiSafeY, roiSafeW, roiSafeH);
+        const roiColor = renkOrtalamasi(roiImgData);
 
-          for (let i = 0; i < imgData.length; i += 4) {
-            const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
-            const brightness = (r + g + b) / 3;
+        // 3) ROI içindeki baret rengini tespit etmek için renk eşikleri (baret renginin baskın olduğu pikseller)
+        let baretPixelSayisi = 0;
+        const toplamPixel = roiSafeW * roiSafeH;
 
-            const sari = r > 180 && g > 180 && b < 130;
-            const beyaz = r > 200 && g > 200 && b > 200;
-            const mavi = r < 100 && g < 150 && b > 170;
+        for(let i=0; i < roiImgData.data.length; i +=4) {
+          const r = roiImgData.data[i];
+          const g = roiImgData.data[i+1];
+          const b = roiImgData.data[i+2];
+          const brightness = (r + g + b)/3;
 
-            // Brightness filtresi ile birlikte renk kontrolü
-            if ((sari || beyaz || mavi) && brightness > 60 && brightness < 240) {
-              renkliPixel++;
-            }
+          // Baret renkleri (sarı, beyaz, mavi)
+          const sari = r > 180 && g > 180 && b < 130;
+          const beyaz = r > 200 && g > 200 && b > 200;
+          const mavi = r < 100 && g < 150 && b > 170;
+
+          // Brightness filtresi ile
+          if((sari || beyaz || mavi) && brightness > 60 && brightness < 240){
+            baretPixelSayisi++;
           }
+        }
 
-          const oran = renkliPixel / toplamPixel;
-          if (oran > 0.12) baretVar = true;
+        const baretOrani = baretPixelSayisi / toplamPixel;
 
-          // Görsel kutu çizimi (kırmızı veya yeşil)
-          ctx.strokeStyle = baretVar ? "green" : "red";
-          ctx.lineWidth = 3;
-          ctx.strokeRect(safeX, safeY, safeW, safeH);
+        // 4) Renk farkı (ROI ve yüz bölgesi) -> saç sakal benzeri ise renk farkı düşük olacak, baret varsa yüksek olmalı
+        const renkFarkiDegeri = renkFarki(roiColor, faceColor);
 
-          ctx.font = "14px sans-serif";
-          ctx.fillStyle = baretVar ? "green" : "red";
-          ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", safeX, safeY - 5);
-        });
+        // Eşik değerler - gerçek kullanımda ayarlanabilir
+        // Baret pixel oranı en az %12 olmalı ve renk farkı 40'ın üzerinde ise baret var kabul et
+        if(baretOrani > 0.12 && renkFarkiDegeri > 40) {
+          baretVar = true;
+        }
 
-        uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
-        await new Promise(r => setTimeout(r, 500));
+        // Kutu ve yazı çizimi
+        ctx.strokeStyle = baretVar ? 'green' : 'red';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(roiSafeX, roiSafeY, roiSafeW, roiSafeH);
+
+        ctx.font = "18px Arial";
+        ctx.fillStyle = baretVar ? 'green' : 'red';
+        ctx.fillText(baretVar ? "Baret Var" : "Baret Yok", roiSafeX, roiSafeY - 10);
       }
-    }
 
-    baslat();
+      uyari.textContent = baretVar ? "" : "❌ Baret Tespit Edilmedi!";
+
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  baslat();
 </script>
 </body>
 </html>
