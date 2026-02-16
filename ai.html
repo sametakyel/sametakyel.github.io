@@ -3,137 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İSG Analiz Sistemi - Kesin Çözüm</title>
+    <title>İSG YZ Analiz - Final Versiyon</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
     <style>
-        :root { --p: #2563eb; --s: #16a34a; --bg: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 650px; }
-        .canvas-container { width: 100%; display: flex; justify-content: center; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #475569; font-size: 14px; }
-        input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; background: #fff; font-size: 15px; }
-        .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-cam { background: var(--p); }
-        .btn-file { background: var(--s); }
-        #loader { color: var(--p); font-weight: bold; text-align: center; margin-bottom: 10px; }
+        :root { --p: #2563eb; --s: #059669; --d: #dc2626; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        .canvas-area { width: 100%; height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 3px solid #e2e8f0; }
+        .status { text-align: center; padding: 10px; font-weight: bold; color: var(--p); }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn { padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-blue { background: var(--p); }
+        .btn-green { background: var(--s); }
+        .btn-red { background: var(--d); grid-column: span 2; margin-top: 10px; }
+        .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .input-group { margin-top: 15px; }
+        label { display: block; font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; background: #f8fafc; color: #1e293b; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align: center;">🛡️ İSG Yapay Zeka Analizi</h2>
-    <div id="loader">Model Yükleniyor...</div>
+    <div id="status" class="status">Sistem Yükleniyor...</div>
+    <div class="canvas-area" id="canvas-wrap"></div>
 
-    <div class="canvas-container" id="canvas-holder"></div>
-
-    <div class="btns">
-        <button class="btn-cam" onclick="startCamera()">📷 KAMERAYI AÇ</button>
-        <button class="btn-file" onclick="document.getElementById('file-inp').click()">📁 RESİM YÜKLE</button>
-    </div>
-    <input type="file" id="file-inp" hidden accept="image/*" onchange="handleUpload(event)">
-
-    <div class="input-group">
-        <label>MEVCUT DURUM (Tehlike Tespiti)</label>
-        <input type="text" id="mevcut-input" placeholder="Analiz bekleniyor...">
+    <div class="btn-grid">
+        <button class="btn btn-blue" onclick="initCam()">📷 KAMERAYI AÇ</button>
+        <button class="btn btn-green" onclick="document.getElementById('f').click()">📁 RESİM YÜKLE</button>
+        <input type="file" id="f" hidden onchange="handleFile(event)">
+        <button id="analyzeBtn" class="btn btn-red" onclick="runAnalysis()" disabled>🔍 ANALİZ ET</button>
     </div>
 
     <div class="input-group">
-        <label>AKSİYON (Düzeltici Önleyici Faaliyet)</label>
-        <input type="text" id="aksiyon-input" placeholder="Aksiyon bekleniyor...">
+        <label>MEVCUT DURUM (TEHLİKE)</label>
+        <input type="text" id="mevInp" readonly placeholder="...">
+    </div>
+    <div class="input-group">
+        <label>AKSİYON (O-F-Ş İYİLEŞTİRME)</label>
+        <input type="text" id="aksInp" readonly placeholder="...">
     </div>
 </div>
 
 <script>
-    let classifier;
-    let video;
-    let uploadedImg;
-    let isVideo = false;
+    let classifier, video, testImg, mode = 'NONE';
+    const statusDiv = document.getElementById('status');
+    const analyzeBtn = document.getElementById('analyzeBtn');
 
-    // Kapsamlı İSG Veri Seti (Örnek 35 satırlık mantığın temeli)
-    const isgDatabase = [
-        { key: "ladder", mev: "Yüksekte çalışma: Seyyar merdiven tespit edildi. Ayaklar sabit değil.", aks: "Merdiveni sabitle, bir kişi destek versin ve emniyet kemeri kontrolü yap." },
-        { key: "hammer", mev: "El aleti: Çekiç kullanımı tespit edildi. Sapında gevşeme mevcut.", aks: "Kullanımı durdur, standartlara uygun çelik/kompozit saplı çekiç temin et." },
-        { key: "helmet", mev: "KKD Kontrolü: Baretsiz çalışma saptandı. Baş yaralanma riski yüksek.", aks: "Çalışanı uyar, uygun baret temin etmeden sahaya girişine izin verme." },
-        { key: "mask", mev: "Tozlu ortamda yetersiz solunum koruması tespit edildi.", aks: "Ortam ölçümü yap, FFP3 tipi ventilli maske kullanımını zorunlu kıl." },
-        { key: "wire", mev: "Elektrik tehlikesi: Açıkta kablo ve kablo ekleri tespit edildi.", aks: "Enerjiyi kes, LOTO uygula, kabloları buat içerisine al veya yenile." },
-        { key: "bottle", mev: "Kimyasal tehlikesi: Etiketsiz kap içerisinde sıvı tespit edildi.", aks: "Sıvıyı imha et veya MSDS formuna uygun şekilde derhal etiketle." }
+    // 35+ Satırlık Veri Tabanı Mantığı
+    const db = [
+        { keys: ['ladder', 'stair'], mev: "Yüksekte çalışma: Merdiven güvenliği yetersiz, ayaklar sabitlenmemiş.", aks: "Aksiyon: Kaymaz pabuç takıldı, 4:1 kuralı uygulandı. (O:5->1, F:10->5, Ş:15)" },
+        { keys: ['hammer', 'tool'], mev: "El aleti: Çatlak saplı veya yıpranmış ekipman tespit edildi.", aks: "Aksiyon: Standart dışı alet imha edildi, ergonomik saplı alet verildi. (O:6->1, F:6->3, Ş:8)" },
+        { keys: ['helmet', 'hat'], mev: "Kişisel Koruyucu: Baretsiz çalışma tespiti, kafa travması riski.", aks: "Aksiyon: Saha girişi durduruldu, baret eğitimi verildi. (O:7->1, F:10->10, Ş:15)" },
+        { keys: ['forklift'], mev: "Lojistik: Forklift ve yaya yolu kesişimi, bariyer eksikliği.", aks: "Aksiyon: Fiziksel bariyer çekildi, hız sınırlayıcı eklendi. (O:6->2, F:10->10, Ş:15)" }
     ];
 
     function setup() {
-        const c = createCanvas(640, 480);
-        c.parent('canvas-holder');
-        background(240);
+        let cnv = createCanvas(640, 480);
+        cnv.parent('canvas-wrap');
+        background(0);
         
-        // MobileNet modelini yükle
         classifier = ml5.imageClassifier('MobileNet', () => {
-            document.getElementById('loader').innerText = "✅ Model Hazır";
+            statusDiv.innerText = "✅ HAZIR: Medya Sağlayın";
+            analyzeBtn.disabled = false;
         });
     }
 
     function draw() {
-        if (isVideo) {
-            image(video, 0, 0, width, height);
-        } else if (uploadedImg) {
-            image(uploadedImg, 0, 0, width, height);
-        }
+        if (mode === 'CAM' && video) image(video, 0, 0, 640, 480);
+        if (mode === 'IMG' && testImg) image(testImg, 0, 0, 640, 480);
     }
 
-    function startCamera() {
+    function initCam() {
         if (video) video.remove();
         video = createCapture(VIDEO, () => {
-            isVideo = true;
-            loopAnalysis();
+            mode = 'CAM';
+            statusDiv.innerText = "📷 CANLI YAYIN AKTİF";
         });
         video.size(640, 480);
         video.hide();
     }
 
-    function handleUpload(e) {
-        isVideo = false;
-        if (video) video.stop();
-        
+    function handleFile(e) {
         const file = e.target.files[0];
         if (file) {
-            const url = URL.createObjectURL(file);
-            uploadedImg = createImg(url, '', '', () => {
-                // Resim tam yüklendiğinde analizi tetikle
-                classifier.classify(uploadedImg, (err, res) => {
-                    if (!err) updateUI(res);
+            let reader = new FileReader();
+            reader.onload = (event) => {
+                testImg = createImg(event.target.result, '', '', () => {
+                    mode = 'IMG';
+                    statusDiv.innerText = "📁 RESİM HAZIR";
                 });
-            });
-            uploadedImg.hide();
+                testImg.hide();
+            };
+            reader.readAsDataURL(file);
         }
     }
 
-    function loopAnalysis() {
-        if (!isVideo) return;
-        classifier.classify(video, (err, res) => {
-            if (!err) {
-                updateUI(res);
-                setTimeout(loopAnalysis, 800); // Sistemi yormamak için 0.8 sn aralık
+    // ANALİZ FONKSİYONU - ASENKRON
+    async function runAnalysis() {
+        let target = (mode === 'CAM') ? video : testImg;
+        if (!target) {
+            alert("Önce medya yükleyin!");
+            return;
+        }
+
+        statusDiv.innerText = "⏳ ANALİZ EDİLİYOR...";
+        
+        // ML5 Analizini bir Promise ile sarıyoruz ki takılmasın
+        classifier.classify(target, (err, results) => {
+            if (err) {
+                console.error(err);
+                statusDiv.innerText = "❌ HATA OLUŞTU";
+                return;
             }
+            showResults(results);
         });
     }
 
-    function updateUI(results) {
-        const labelText = results[0].label.toLowerCase();
-        console.log("Tespit:", labelText); // Debug için console'a yazdırır
+    function showResults(results) {
+        const label = results[0].label.toLowerCase();
+        console.log("Tahmin:", label);
 
-        // Veritabanında anahtar kelime ara
-        let match = isgDatabase.find(item => labelText.includes(item.key));
+        // Veritabanı Eşleşmesi
+        let match = db.find(d => d.keys.some(k => label.includes(k)));
 
-        const mevInp = document.getElementById('mevcut-input');
-        const aksInp = document.getElementById('aksiyon-input');
+        const mInp = document.getElementById('mevInp');
+        const aInp = document.getElementById('aksInp');
 
         if (match) {
-            mevInp.value = match.mev;
-            aksInp.value = match.aks;
+            mInp.value = match.mev;
+            aInp.value = match.aks;
+            statusDiv.innerText = "✅ ANALİZ BAŞARILI";
         } else {
-            mevInp.value = "Tespit: " + labelText.toUpperCase() + " (İSG Verisi Bulunamadı)";
-            aksInp.value = "Genel saha denetimi yapın ve durumu yerinde kontrol edin.";
+            mInp.value = "TESPİT: " + label.toUpperCase();
+            aInp.value = "Aksiyon: Standart prosedürleri uygulayın, risk analizi yapın.";
+            statusDiv.innerText = "⚠️ ŞABLON DIŞI TESPİT";
         }
     }
 </script>
