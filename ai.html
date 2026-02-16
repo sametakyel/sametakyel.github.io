@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>İSG YZ Analiz Formu</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+    
+    <style>
+        :root { --primary: #2563eb; --danger: #dc2626; --error-bg: #fef2f2; }
+        body { font-family: sans-serif; background: #f8fafc; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        
+        /* Hata Mesajı Bölümü */
+        #error-log { display: none; background: var(--error-bg); border: 1px solid #fee2e2; color: var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; white-space: pre-wrap; }
+        
+        .btn-camera { background: var(--primary); color: white; padding: 16px; border: none; border-radius: 12px; font-size: 1rem; width: 100%; cursor: pointer; font-weight: bold; }
+        #image-preview { width: 100%; border-radius: 12px; display: none; margin-top: 15px; }
+        
+        .input-field { margin-top: 15px; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #64748b; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; background: #f8fafc; }
+        
+        .loader { display: none; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 15px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>İSG Yapay Zeka Analizi</h2>
+
+    <div id="error-log"></div>
+
+    <div style="text-align: center;">
+        <input type="file" accept="image/*" capture="environment" id="camera-input" style="display: none;">
+        <button class="btn-camera" onclick="handleButtonClick()">📸 FOTOĞRAF ÇEK</button>
+        <div id="loader" class="loader"></div>
+        <img id="image-preview" src="">
+    </div>
+
+    <div class="input-field">
+        <label>Tehlikeli Durum Tespiti</label>
+        <input type="text" id="tehlike_input" readonly>
+    </div>
+
+    <div class="input-field">
+        <label>Önerilen Aksiyon</label>
+        <input type="text" id="aksiyon_input" readonly>
+    </div>
+</div>
+
+<script>
+    // --- LÜTFEN MODEL LİNKİNİZİ KONTROL EDİN ---
+    // Link sonu mutlaka "/" ile bitmeli ve HTTPS olmalıdır.
+    const URL = "https://teachablemachine.withgoogle.com/models/SizinModelKodunuz/"; 
+
+    let model, maxPredictions;
+    const errorLog = document.getElementById('error-log');
+    const loader = document.getElementById('loader');
+
+    function logError(msg) {
+        errorLog.innerText = "HATA: " + msg;
+        errorLog.style.display = "block";
+        loader.style.display = "none";
+    }
+
+    // Modeli yükleme fonksiyonu
+    async function loadModel() {
+        try {
+            if (!model) {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+                console.log("Model başarıyla yüklendi.");
+            }
+        } catch (e) {
+            logError("Model yüklenemedi. İnternet bağlantınızı ve URL'yi kontrol edin. \nDetay: " + e.message);
+        }
+    }
+
+    async function handleButtonClick() {
+        errorLog.style.display = "none";
+        // Kullanıcı butona bastığında modeli önceden yüklemeye çalış (iOS için tetikleyici)
+        await loadModel();
+        document.getElementById('camera-input').click();
+    }
+
+    document.getElementById('camera-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const img = document.getElementById('image-preview');
+        img.src = window.URL.createObjectURL(file);
+        img.style.display = "block";
+        loader.style.display = "block";
+
+        img.onload = async () => {
+            try {
+                if (!model) await loadModel();
+                
+                // Analiz yap
+                const prediction = await model.predict(img);
+                
+                // En yüksek skorlu tahmini bul
+                let bestMatch = { className: "", probability: 0 };
+                prediction.forEach(p => {
+                    if (p.probability > bestMatch.probability) bestMatch = p;
+                });
+
+                loader.style.display = "none";
+                displayResults(bestMatch);
+
+            } catch (err) {
+                logError("Analiz sırasında bir sorun oluştu: " + err.message);
+            }
+        };
+    });
+
+    function displayResults(result) {
+        const tInput = document.getElementById('tehlike_input');
+        const aInput = document.getElementById('aksiyon_input');
+
+        if (result.probability > 0.50) {
+            // Modeldeki sınıf adlarınıza göre burayı düzenleyebilirsiniz
+            tInput.value = result.className + " (% " + Math.round(result.probability * 100) + ")";
+            
+            // Basit bir mantık: Sınıf ismine göre aksiyon ata
+            if (result.className.toLowerCase().includes("acik")) {
+                aInput.value = "Makineyi durdur ve muhafazayı kapat.";
+            } else if (result.className.toLowerCase().includes("guvenli")) {
+                aInput.value = "İşleme devam edilebilir.";
+            } else {
+                aInput.value = "Durumu yerinde kontrol edin.";
+            }
+        } else {
+            tInput.value = "Tanımlanamadı.";
+            aInput.value = "Daha net bir fotoğraf deneyin.";
+        }
+    }
+
+    // Sayfa açılır açılmaz modeli yüklemeye başla
+    loadModel();
+</script>
+
+</body>
+</html>
