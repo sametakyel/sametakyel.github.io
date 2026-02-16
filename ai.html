@@ -3,145 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İSG YZ Analiz - Final Versiyon</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <title>İSG YZ Analiz - Profesyonel Sürüm</title>
     <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
     <style>
-        :root { --p: #2563eb; --s: #059669; --d: #dc2626; }
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        .canvas-area { width: 100%; height: 400px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 3px solid #e2e8f0; }
-        .status { text-align: center; padding: 10px; font-weight: bold; color: var(--p); }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-blue { background: var(--p); }
-        .btn-green { background: var(--s); }
-        .btn-red { background: var(--d); grid-column: span 2; margin-top: 10px; }
-        .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-        .input-group { margin-top: 15px; }
-        label { display: block; font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 5px; }
-        input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; background: #f8fafc; color: #1e293b; }
+        :root { --primary: #2563eb; --success: #16a34a; --danger: #ef4444; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
+        #display-area { width: 100%; height: 350px; background: #000; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        video, img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-blue { background: var(--primary); }
+        .btn-green { background: var(--success); }
+        .btn-red { background: var(--danger); width: 100%; font-size: 1.1rem; margin-top: 10px; }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .input-field { margin-top: 15px; }
+        label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        input { width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px; background: #f8fafc; font-size: 0.95rem; box-sizing: border-box; }
+        #status { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="status" class="status">Sistem Yükleniyor...</div>
-    <div class="canvas-area" id="canvas-wrap"></div>
-
-    <div class="btn-grid">
-        <button class="btn btn-blue" onclick="initCam()">📷 KAMERAYI AÇ</button>
-        <button class="btn btn-green" onclick="document.getElementById('f').click()">📁 RESİM YÜKLE</button>
-        <input type="file" id="f" hidden onchange="handleFile(event)">
-        <button id="analyzeBtn" class="btn btn-red" onclick="runAnalysis()" disabled>🔍 ANALİZ ET</button>
+<div class="container">
+    <div id="status">Sistem Yükleniyor...</div>
+    
+    <div id="display-area">
+        <video id="webcam" autoplay playsinline style="display:none;"></video>
+        <img id="preview" style="display:none;">
     </div>
 
-    <div class="input-group">
-        <label>MEVCUT DURUM (TEHLİKE)</label>
-        <input type="text" id="mevInp" readonly placeholder="...">
+    <div class="btn-group">
+        <button class="btn-blue" onclick="startCamera()">📷 KAMERAYI AÇ</button>
+        <button class="btn-green" onclick="document.getElementById('fileInp').click()">📁 RESİM YÜKLE</button>
     </div>
-    <div class="input-group">
-        <label>AKSİYON (O-F-Ş İYİLEŞTİRME)</label>
-        <input type="text" id="aksInp" readonly placeholder="...">
+    <input type="file" id="fileInp" hidden accept="image/*" onchange="loadFile(event)">
+    <button id="analyzeBtn" class="btn btn-red" onclick="analyzeNow()" disabled>🔍 ŞİMDİ ANALİZ ET</button>
+
+    <div class="input-field">
+        <label>Mevcut Durum (Tehlike ve İlk Önlemler)</label>
+        <input type="text" id="mevcutOut" readonly>
+    </div>
+    <div class="input-field">
+        <label>Aksiyon (Düzeltici Faaliyet & O-F-Ş Değişimi)</label>
+        <input type="text" id="aksiyonOut" readonly>
     </div>
 </div>
 
 <script>
-    let classifier, video, testImg, mode = 'NONE';
-    const statusDiv = document.getElementById('status');
+    let classifier;
+    let currentSource = null;
+    const statusText = document.getElementById('status');
     const analyzeBtn = document.getElementById('analyzeBtn');
+    const webcam = document.getElementById('webcam');
+    const preview = document.getElementById('preview');
 
-    // 35+ Satırlık Veri Tabanı Mantığı
-    const db = [
-        { keys: ['ladder', 'stair'], mev: "Yüksekte çalışma: Merdiven güvenliği yetersiz, ayaklar sabitlenmemiş.", aks: "Aksiyon: Kaymaz pabuç takıldı, 4:1 kuralı uygulandı. (O:5->1, F:10->5, Ş:15)" },
-        { keys: ['hammer', 'tool'], mev: "El aleti: Çatlak saplı veya yıpranmış ekipman tespit edildi.", aks: "Aksiyon: Standart dışı alet imha edildi, ergonomik saplı alet verildi. (O:6->1, F:6->3, Ş:8)" },
-        { keys: ['helmet', 'hat'], mev: "Kişisel Koruyucu: Baretsiz çalışma tespiti, kafa travması riski.", aks: "Aksiyon: Saha girişi durduruldu, baret eğitimi verildi. (O:7->1, F:10->10, Ş:15)" },
-        { keys: ['forklift'], mev: "Lojistik: Forklift ve yaya yolu kesişimi, bariyer eksikliği.", aks: "Aksiyon: Fiziksel bariyer çekildi, hız sınırlayıcı eklendi. (O:6->2, F:10->10, Ş:15)" }
-    ];
+    // 35 Satırlık hedef için genişletilebilir İSG Veritabanı
+    const isgDB = [
 
-    function setup() {
-        let cnv = createCanvas(640, 480);
-        cnv.parent('canvas-wrap');
-        background(0);
-        
-        classifier = ml5.imageClassifier('MobileNet', () => {
-            statusDiv.innerText = "✅ HAZIR: Medya Sağlayın";
+    { tags: ['ladder', 'stair'], 
+      mev: "Yüksekte çalışma: Merdiven pabuçları eksik ve sabitleme yapılmamış.", 
+      aks: "Düzeltme: Kaymaz taban takıldı, sabitleme yapıldı ve alan şeritle çevrildi. (O:5->1, F:10->5, Ş:15)" },
+
+    { tags: ['scaffold', 'platform'], 
+      mev: "İskele: Korkuluk ve topuk levhası eksik.", 
+      aks: "Aksiyon: EN 12811'e uygun korkuluk ve topuk levhası monte edildi. (O:6->1, F:8->4, Ş:20)" },
+
+    { tags: ['helmet', 'hat'], 
+      mev: "KKD İhlali: Baretsiz personel tehlikeli alanda.", 
+      aks: "Aksiyon: Personel sahadan çıkarıldı, KKD denetimi artırıldı. (O:7->1, F:10->10, Ş:15)" },
+
+    { tags: ['glove'], 
+      mev: "Kesici işte eldiven kullanılmıyor.", 
+      aks: "Aksiyon: EN 388 kesilmeye dayanıklı eldiven temin edildi. (O:6->1, F:8->5, Ş:15)" },
+
+    { tags: ['goggles', 'eye'], 
+      mev: "Taşlama işleminde gözlük kullanılmıyor.", 
+      aks: "Aksiyon: EN 166 koruyucu gözlük zorunlu hale getirildi. (O:7->1, F:8->5, Ş:25)" },
+
+    { tags: ['electric', 'wire', 'socket'], 
+      mev: "Elektrik panosunda izolasyon hasarı ve açık kapak.", 
+      aks: "Düzeltme: LOTO uygulandı, pano kilitlendi ve izolasyon yenilendi. (O:4->1, F:10->2, Ş:40)" },
+
+    { tags: ['extension', 'cable'], 
+      mev: "Uzatma kablosu zeminde gelişigüzel duruyor.", 
+      aks: "Aksiyon: Kablo askı sistemi kuruldu, kablo kanalı kullanıldı. (O:5->1, F:10->4, Ş:10)" },
+
+    { tags: ['machine', 'guard'], 
+      mev: "Makine koruyucusu sökülmüş şekilde çalıştırılıyor.", 
+      aks: "Aksiyon: Koruyucu kapak yerine takıldı, emniyet switchi kontrol edildi. (O:8->1, F:6->3, Ş:40)" },
+
+    { tags: ['press', 'hydraulic'], 
+      mev: "Hidrolik pres çift el kumanda sistemi devre dışı.", 
+      aks: "Aksiyon: Çift el kontrol sistemi aktif hale getirildi. (O:9->1, F:6->3, Ş:40)" },
+
+    { tags: ['forklift', 'vehicle'], 
+      mev: "Forklift ile yaya yolları ayrılmamış.", 
+      aks: "Aksiyon: Yaya yolu çizgileri ve bariyer sistemi oluşturuldu. (O:7->2, F:10->6, Ş:30)" },
+
+    { tags: ['truck', 'loading'], 
+      mev: "Yükleme alanında takoz kullanılmıyor.", 
+      aks: "Aksiyon: Teker takozu zorunlu hale getirildi. (O:6->1, F:8->4, Ş:30)" },
+
+    { tags: ['chemical', 'acid'], 
+      mev: "Kimyasal kap üzerinde etiket bulunmuyor.", 
+      aks: "Aksiyon: MSDS'e uygun etiketleme yapıldı. (O:5->1, F:6->3, Ş:25)" },
+
+    { tags: ['gas', 'cylinder'], 
+      mev: "Gaz tüpü zincirle sabitlenmemiş.", 
+      aks: "Aksiyon: Tüp sabitleme aparatı monte edildi. (O:6->1, F:6->3, Ş:40)" },
+
+    { tags: ['fire', 'extinguisher'], 
+      mev: "Yangın tüpü periyodik kontrol tarihi geçmiş.", 
+      aks: "Aksiyon: Dolum ve kontrol yenilendi. (O:4->1, F:6->3, Ş:35)" },
+
+    { tags: ['hotwork', 'welding'], 
+      mev: "Kaynak işleminde yangın gözcüsü yok.", 
+      aks: "Aksiyon: Sıcak çalışma izni ve yangın gözcüsü atandı. (O:7->1, F:6->3, Ş:40)" },
+
+    { tags: ['confined', 'tank'], 
+      mev: "Kapalı alanda gaz ölçümü yapılmamış.", 
+      aks: "Aksiyon: Çoklu gaz dedektörü ile ölçüm zorunlu hale getirildi. (O:9->1, F:5->2, Ş:40)" },
+
+    { tags: ['noise'], 
+      mev: "85 dB üzeri alanda kulaklık kullanılmıyor.", 
+      aks: "Aksiyon: EN 352 kulak koruyucu dağıtıldı. (O:6->1, F:10->6, Ş:15)" },
+
+    { tags: ['dust'], 
+      mev: "Tozlu ortamda aspirasyon sistemi yok.", 
+      aks: "Aksiyon: Lokal emiş sistemi kuruldu. (O:6->2, F:8->4, Ş:20)" },
+
+    { tags: ['slip', 'floor'], 
+      mev: "Zeminde yağ birikintisi var.", 
+      aks: "Aksiyon: Dökülme temizlendi ve uyarı levhası kondu. (O:7->1, F:8->4, Ş:15)" },
+
+    { tags: ['storage', 'stack'], 
+      mev: "Malzemeler düzensiz ve devrilme riski var.", 
+      aks: "Aksiyon: Raf sistemi kuruldu ve yük limiti belirlendi. (O:6->1, F:6->3, Ş:25)" },
+
+    { tags: ['manual', 'lifting'], 
+      mev: "Ağır yük elle taşınıyor.", 
+      aks: "Aksiyon: Transpalet temin edildi ve eğitim verildi. (O:7->2, F:8->4, Ş:20)" },
+
+    { tags: ['ergonomic', 'desk'], 
+      mev: "Ofis çalışanında ergonomik olmayan oturma düzeni.", 
+      aks: "Aksiyon: Ergonomik sandalye ve monitör yükseltici sağlandı. (O:5->2, F:10->6, Ş:8)" },
+
+    { tags: ['explosion', 'atex'], 
+      mev: "Patlayıcı ortamda ex-proof ekipman yok.", 
+      aks: "Aksiyon: ATEX uygun ekipman ile değişim yapıldı. (O:8->1, F:6->3, Ş:40)" },
+
+    { tags: ['lighting'], 
+      mev: "Çalışma alanında yetersiz aydınlatma.", 
+      aks: "Aksiyon: Lux seviyesi artırıldı ve LED armatür takıldı. (O:4->1, F:10->6, Ş:10)" },
+
+    { tags: ['ventilation'], 
+      mev: "Kapalı alanda havalandırma yetersiz.", 
+      aks: "Aksiyon: Mekanik havalandırma sistemi kuruldu. (O:6->2, F:8->4, Ş:25)" },
+
+    { tags: ['biohazard'], 
+      mev: "Atık su temas riski olan alanda biyolojik koruma yok.", 
+      aks: "Aksiyon: Su geçirmez eldiven ve yüz siperi verildi. (O:6->1, F:6->3, Ş:25)" },
+
+    { tags: ['radiation'], 
+      mev: "Kaynak ışınına karşı perdeleme yok.", 
+      aks: "Aksiyon: Kaynak perdesi monte edildi. (O:6->1, F:8->4, Ş:20)" },
+
+    { tags: ['emergency', 'exit'], 
+      mev: "Acil çıkış önü kapalı.", 
+      aks: "Aksiyon: Alan boşaltıldı ve sürekli denetim planlandı. (O:7->1, F:6->3, Ş:40)" },
+
+    { tags: ['firstaid'], 
+      mev: "İlk yardım dolabı eksik malzemeli.", 
+      aks: "Aksiyon: Dolap TS 4019 standardına göre tamamlandı. (O:4->1, F:6->3, Ş:20)" },
+
+    { tags: ['naturalgas'], 
+      mev: "Doğalgaz hattında gaz dedektörü bulunmuyor.", 
+      aks: "Aksiyon: Sabit gaz algılama sistemi kuruldu. (O:8->1, F:6->3, Ş:40)" }
+
+];
+
+    // Model Yükleme
+    async function loadModel() {
+        try {
+            classifier = await ml5.imageClassifier('MobileNet');
+            statusText.innerText = "✅ SİSTEM HAZIR";
             analyzeBtn.disabled = false;
-        });
-    }
-
-    function draw() {
-        if (mode === 'CAM' && video) image(video, 0, 0, 640, 480);
-        if (mode === 'IMG' && testImg) image(testImg, 0, 0, 640, 480);
-    }
-
-    function initCam() {
-        if (video) video.remove();
-        video = createCapture(VIDEO, () => {
-            mode = 'CAM';
-            statusDiv.innerText = "📷 CANLI YAYIN AKTİF";
-        });
-        video.size(640, 480);
-        video.hide();
-    }
-
-    function handleFile(e) {
-        const file = e.target.files[0];
-        if (file) {
-            let reader = new FileReader();
-            reader.onload = (event) => {
-                testImg = createImg(event.target.result, '', '', () => {
-                    mode = 'IMG';
-                    statusDiv.innerText = "📁 RESİM HAZIR";
-                });
-                testImg.hide();
-            };
-            reader.readAsDataURL(file);
+        } catch (e) {
+            statusText.innerText = "❌ Model Yüklenemedi!";
+            console.error(e);
         }
     }
 
-    // ANALİZ FONKSİYONU - ASENKRON
-    async function runAnalysis() {
-        let target = (mode === 'CAM') ? video : testImg;
-        if (!target) {
-            alert("Önce medya yükleyin!");
+    // Kamera Başlatma
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            webcam.srcObject = stream;
+            webcam.style.display = 'block';
+            preview.style.display = 'none';
+            currentSource = webcam;
+            statusText.innerText = "📷 CANLI KAMERA AKTİF";
+        } catch (e) {
+            alert("Kamera izni reddedildi!");
+        }
+    }
+
+    // Dosya Yükleme
+    function loadFile(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            preview.src = url;
+            preview.style.display = 'block';
+            webcam.style.display = 'none';
+            currentSource = preview;
+            statusText.innerText = "📁 RESİM ANALİZE HAZIR";
+        }
+    }
+
+    // ANALİZ ET
+    async function analyzeNow() {
+        if (!currentSource) {
+            alert("Önce bir görüntü kaynağı seçin!");
             return;
         }
 
-        statusDiv.innerText = "⏳ ANALİZ EDİLİYOR...";
+        statusText.innerText = "⏳ ANALİZ YAPILIYOR...";
         
-        // ML5 Analizini bir Promise ile sarıyoruz ki takılmasın
-        classifier.classify(target, (err, results) => {
-            if (err) {
-                console.error(err);
-                statusDiv.innerText = "❌ HATA OLUŞTU";
-                return;
+        try {
+            const results = await classifier.classify(currentSource);
+            const label = results[0].label.toLowerCase();
+            console.log("YZ Tahmini:", label);
+
+            // Veritabanı Taraması
+            const match = isgDB.find(item => item.tags.some(t => label.includes(t)));
+            
+            if (match) {
+                document.getElementById('mevcutOut').value = match.mev;
+                document.getElementById('aksiyonOut').value = match.aks;
+                statusText.innerText = "✅ ANALİZ BAŞARILI";
+            } else {
+                document.getElementById('mevcutOut').value = "TESPİT: " + label.split(',')[0].toUpperCase();
+                document.getElementById('aksiyonOut').value = "Özel aksiyon planı bulunamadı. Genel denetim prosedürünü işletin.";
+                statusText.innerText = "⚠️ BİLİNMEYEN NESNE";
             }
-            showResults(results);
-        });
-    }
-
-    function showResults(results) {
-        const label = results[0].label.toLowerCase();
-        console.log("Tahmin:", label);
-
-        // Veritabanı Eşleşmesi
-        let match = db.find(d => d.keys.some(k => label.includes(k)));
-
-        const mInp = document.getElementById('mevInp');
-        const aInp = document.getElementById('aksInp');
-
-        if (match) {
-            mInp.value = match.mev;
-            aInp.value = match.aks;
-            statusDiv.innerText = "✅ ANALİZ BAŞARILI";
-        } else {
-            mInp.value = "TESPİT: " + label.toUpperCase();
-            aInp.value = "Aksiyon: Standart prosedürleri uygulayın, risk analizi yapın.";
-            statusDiv.innerText = "⚠️ ŞABLON DIŞI TESPİT";
+        } catch (err) {
+            statusText.innerText = "❌ ANALİZ HATASI!";
+            console.error(err);
         }
     }
-</script>
 
+    loadModel();
+</script>
 </body>
 </html>
