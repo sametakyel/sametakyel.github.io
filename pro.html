@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Harita Uçuş Gezintisi</title>
+  
+  <!-- CesiumJS CSS ve JS (CDN) -->
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000;
+    }
+
+    #cesiumContainer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Uçuş Kontrol Paneli (Overlay) */
+    .flight-controls {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .control-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(59, 130, 246, 0.7);
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+    }
+
+    .ctrl-btn:active {
+      transform: translateY(0);
+      background: rgba(37, 99, 235, 0.9);
+    }
+
+    .flight-info {
+      margin-top: 5px;
+      color: #e2e8f0;
+      font-size: 11px;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* Cesium Gereksiz Bileşenleri Gizleme */
+    .cesium-viewer-bottom,
+    .cesium-viewer-animationContainer,
+    .cesium-viewer-timelineContainer {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Harita Konteyneri -->
+  <div id="cesiumContainer"></div>
+
+  <!-- Yön Tuşları Paneli -->
+  <div class="flight-controls">
+    <div class="control-row">
+      <button id="btnUp" class="ctrl-btn">▲</button>
+    </div>
+    <div class="control-row">
+      <button id="btnLeft" class="ctrl-btn">◀</button>
+      <button id="btnDown" class="ctrl-btn">▼</button>
+      <button id="btnRight" class="ctrl-btn">▶</button>
+    </div>
+    <div class="flight-info">
+      <span>Yön Tuşları / Ekrandaki Oklar ile Uçun</span>
+    </div>
+  </div>
+
+  <script>
+    // Cesium Ion varsayılan erişim anahtarını boş bırakıyoruz (Kendi haritamızı doğrudan yükleyeceğiz)
+    Cesium.Ion.defaultAccessToken = '';
+
+    // 1. Doğrudan Çalışan Yüksek Çözünürlüklü Uydu Haritası (Esri World Imagery)
+    const esriImageryProvider = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      maximumLevel: 19,
+      credit: 'Esri World Imagery'
+    });
+
+    // 2. Viewer Başlatma (Token Bağımlılığı Olmayan Ayarlar)
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      imageryProvider: esriImageryProvider,
+      baseLayerPicker: false,
+      geocoder: false,
+      homeButton: false,
+      infoBox: true,
+      sceneModePicker: false,
+      navigationHelpButton: false,
+      animation: false,
+      timeline: false,
+      fullscreenButton: false,
+      selectionIndicator: true
+    });
+
+    // Atmosfer ve Işıklandırma
+    viewer.scene.globe.enableLighting = false; // Haritanın sürekli aydınlık görünmesi için
+    viewer.scene.fog.enabled = true;
+
+    // 3. Başlangıç Kamera Konumu (İstanbul / Uçuş Açısı)
+    const startLongitude = 28.9784;
+    const startLatitude = 41.0082;
+    const startHeight = 800; // Metre yükseklik
+
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(startLongitude, startLatitude, startHeight),
+      orientation: {
+        heading: Cesium.Math.toRadians(0.0),   // Kuzeye Bakış
+        pitch: Cesium.Math.toRadians(-25.0),  // 25 Derece İleri/Aşağı Eğim
+        roll: 0.0
+      }
+    });
+
+    // 4. SVG İkon (Pin) Tanımı (Dış Görsel Bağlantısı Hatasını Önlemek İçin Dahili SVG)
+    const pinSvg = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#ef4444" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3" fill="#ffffff"></circle>
+      </svg>
+    `);
+
+    // 5. Pinli Noktalar
+    const pinLocations = [
+      {
+        name: "Ayasofya-i Kebir Cami-i Şerifi",
+        lon: 28.9802,
+        lat: 41.0086,
+        description: "<h3>Ayasofya</h3><p>Tarihi ve mimari açıdan dünyanın en önemli yapılarından biri.</p>"
+      },
+      {
+        name: "Galata Kulesi",
+        lon: 28.9741,
+        lat: 41.0256,
+        description: "<h3>Galata Kulesi</h3><p>İstanbul'un eşsiz panoramik manzarasına sahip tarihi kule.</p>"
+      },
+      {
+        name: "Kız Kulesi",
+        lon: 29.0041,
+        lat: 41.0211,
+        description: "<h3>Kız Kulesi</h3><p>Boğaz'ın ortasında yer alan ikonik simge yapı.</p>"
+      }
+    ];
+
+    // Pinleri Ekleme
+    pinLocations.forEach(pin => {
+      viewer.entities.add({
+        name: pin.name,
+        position: Cesium.Cartesian3.fromDegrees(pin.lon, pin.lat, 50),
+        billboard: {
+          image: pinSvg,
+          width: 32,
+          height: 32,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+        },
+        description: pin.description
+      });
+    });
+
+    // 6. Uçuş Kontrolleri
+    const moveSpeed = 20.0; // İleri/Geri uçuş hızı
+    const turnSpeed = 0.025; // Dönüş hızı
+
+    const flags = {
+      moveForward: false,
+      moveBackward: false,
+      moveLeft: false,
+      moveRight: false
+    };
+
+    // Klavye Dinleyicileri
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') flags.moveForward = true;
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') flags.moveBackward = true;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') flags.moveLeft = true;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') flags.moveRight = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') flags.moveForward = false;
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') flags.moveBackward = false;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') flags.moveLeft = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') flags.moveRight = false;
+    });
+
+    // Buton Bağlantıları
+    function bindButton(elementId, flagName) {
+      const btn = document.getElementById(elementId);
+      
+      const start = (e) => { e.preventDefault(); flags[flagName] = true; };
+      const end = (e) => { e.preventDefault(); flags[flagName] = false; };
+
+      btn.addEventListener('mousedown', start);
+      btn.addEventListener('mouseup', end);
+      btn.addEventListener('mouseleave', end);
+      
+      btn.addEventListener('touchstart', start);
+      btn.addEventListener('touchend', end);
+    }
+
+    bindButton('btnUp', 'moveForward');
+    bindButton('btnDown', 'moveBackward');
+    bindButton('btnLeft', 'moveLeft');
+    bindButton('btnRight', 'moveRight');
+
+    // Uçuş Döngüsü (Her Frame)
+    viewer.clock.onTick.addEventListener(() => {
+      const camera = viewer.camera;
+
+      if (flags.moveForward) {
+        camera.moveForward(moveSpeed);
+      }
+      if (flags.moveBackward) {
+        camera.moveBackward(moveSpeed);
+      }
+      if (flags.moveLeft) {
+        camera.setView({
+          orientation: {
+            heading: camera.heading - turnSpeed,
+            pitch: camera.pitch,
+            roll: camera.roll
+          }
+        });
+      }
+      if (flags.moveRight) {
+        camera.setView({
+          orientation: {
+            heading: camera.heading + turnSpeed,
+            pitch: camera.pitch,
+            roll: camera.roll
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
