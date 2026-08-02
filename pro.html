@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages AI Studio (Sıfır Hata)</title>
+    <title>Çevrimdışı / Local AI Studio (GitHub Pages)</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -121,6 +121,16 @@
         .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(16, 185, 129, 0.35); }
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        .status-box {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
         .results-container { display: flex; flex-direction: column; gap: 1.25rem; }
 
         .result-card {
@@ -180,17 +190,17 @@
 
 <div class="container">
     <header>
-        <h1>GitHub Pages AI Studio</h1>
-        <p>API Key Gerektirmeyen Canlı ve Ücretsiz Yapay Zeka Entegrasyonu</p>
+        <h1>WebGPU In-Browser AI Studio</h1>
+        <p>Ağ İstek Hatası ve CORS Engeli Olmayan Sıfır API Key Yapay Zeka</p>
     </header>
 
     <div class="layout-grid">
         <div class="panel">
-            <h2><i class="fa-solid fa-brain"></i> İstem Paneli</h2>
+            <h2><i class="fa-solid fa-microchip"></i> İstem Paneli</h2>
             <form id="aiForm">
                 <div class="form-group">
                     <label for="userInput">Sorgu / İstem</label>
-                    <textarea id="userInput" class="form-control" placeholder="Sorunuzu veya talebinizi girin..." required></textarea>
+                    <textarea id="userInput" class="form-control" placeholder="Sorunuzu girin..." required></textarea>
                 </div>
 
                 <button type="submit" id="submitBtn" class="btn-submit">
@@ -198,81 +208,75 @@
                     <span id="btnText">Yanıt Üret</span>
                 </button>
             </form>
+
+            <div class="status-box" id="statusBox">
+                <i class="fa-solid fa-circle-info"></i> Model Durumu: Hazırlanıyor...
+            </div>
         </div>
 
         <div class="results-container" id="resultsContainer">
             <div class="empty-state">
-                <i class="fa-solid fa-sparkles"></i>
-                <p>Sorunuzu yazıp düğmeye tıklayın.</p>
+                <i class="fa-solid fa-bolt"></i>
+                <p>Sistem açıldığında sorunuzu girip çalıştırabilirsiniz.</p>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    const aiForm = document.getElementById('aiForm');
-    const userInput = document.getElementById('userInput');
+<!-- WebLLM Modülü CDN -->
+<script type="module">
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+    const statusBox = document.getElementById('statusBox');
     const submitBtn = document.getElementById('submitBtn');
     const btnText = document.getElementById('btnText');
+    const aiForm = document.getElementById('aiForm');
+    const userInput = document.getElementById('userInput');
     const resultsContainer = document.getElementById('resultsContainer');
+
+    // Hafif ve hızlı çalışan açık kaynaklı Türkçe/İngilizce destekli model
+    const selectedModel = "Llama-3-8B-Instruct-q4f16_1-MLC";
+    let engine;
+
+    async function initModel() {
+        try {
+            statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Tarayıcı Yapay Zekası Yükleniyor...';
+            submitBtn.disabled = true;
+
+            engine = await webllm.CreateMLCEngine(
+                selectedModel,
+                { initProgressCallback: (report) => {
+                    statusBox.innerText = report.text;
+                }}
+            );
+
+            statusBox.innerHTML = '<i class="fa-solid fa-check" style="color: var(--accent-green);"></i> Model Hazır (Tarayıcıda Çalışıyor)';
+            submitBtn.disabled = false;
+        } catch (err) {
+            console.error("WebGPU Destek Hatası:", err);
+            statusBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> Chrome WebGPU desteği aktif değil veya tarayıcı uyumsuz.';
+        }
+    }
+
+    // Uygulama Başlatma
+    initModel();
 
     aiForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const prompt = userInput.value.trim();
-        if (!prompt) return;
+        if (!prompt || !engine) return;
 
         submitBtn.disabled = true;
-        btnText.textContent = "Bağlanıyor ve Yanıtlanıyor...";
+        btnText.textContent = "Çıkarım Yapılıyor...";
 
         try {
-            // Step 1: DuckDuckGo Anonim VKEY (Token) Alma
-            const tokenRes = await fetch("https://duckduckgo.com/duckchat/v1/status", {
-                headers: { "x-vqd-accept": "1" }
-            });
+            const messages = [
+                { role: "system", content: "Sen yardımsever ve net yanıtlar veren bir yapay zeka asistanısın." },
+                { role: "user", content: prompt }
+            ];
 
-            if (!tokenRes.ok) throw new Error("Sunucudan yetkilendirme jetonu alınamadı.");
-            const vqd = tokenRes.headers.get("x-vqd-4");
-
-            // Step 2: Yapay Zeka Model Oturumu Açma ve Sorgulama
-            const chatRes = await fetch("https://duckduckgo.com/duckchat/v1/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-vqd-4": vqd
-                },
-                body: JSON.stringify({
-                    model: "gpt-4o-mini",
-                    messages: [{ role: "user", content: prompt }]
-                })
-            });
-
-            if (!chatRes.ok) throw new Error("Yapay zeka yanıt veremedi.");
-
-            // Step 3: Stream Yanıtını İşleme
-            const reader = chatRes.body.getReader();
-            const decoder = new TextDecoder();
-            let fullText = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value);
-                const lines = chunk.split("\n");
-
-                for (const line of lines) {
-                    if (line.startsWith("data: ")) {
-                        const dataStr = line.replace("data: ", "").trim();
-                        if (dataStr === "[DONE]") break;
-                        try {
-                            const parsed = JSON.parse(dataStr);
-                            if (parsed.message) {
-                                fullText += parsed.message;
-                            }
-                        } catch (pErr) {}
-                    }
-                }
-            }
+            const reply = await engine.chat.completions.create({ messages });
+            const responseText = reply.choices[0].message.content;
 
             if (document.querySelector('.empty-state')) {
                 resultsContainer.innerHTML = '';
@@ -282,18 +286,17 @@
             card.className = 'result-card';
             card.innerHTML = `
                 <div class="card-header">
-                    <span class="badge-model">GPT-4o MINI (ANONYMOUS ENGINE)</span>
+                    <span class="badge-model">LOCAL WEBGPU ENGINE</span>
                     <span style="font-size: 0.8rem; color: var(--text-secondary);">${new Date().toLocaleTimeString('tr-TR')}</span>
                 </div>
-                <div class="response-box">${escapeHtml(fullText || "Yanıt alınamadı.")}</div>
+                <div class="response-box">${escapeHtml(responseText)}</div>
             `;
 
             resultsContainer.prepend(card);
             userInput.value = '';
 
         } catch (err) {
-            console.error("Hata Detayı:", err);
-            alert("Bağlantı Hatası: " + err.message);
+            alert("İşlem sırasında hata oluştu: " + err.message);
         } finally {
             submitBtn.disabled = false;
             btnText.textContent = "Yanıt Üret";
