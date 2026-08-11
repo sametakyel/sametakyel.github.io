@@ -125,17 +125,20 @@ function createRoom() {
 
     roomRef.set({
       createdAt: Date.now(),
+      lastActive: Date.now(),
       status: 'waiting',
-      player1: { ready: true, connected: true },
-      player2: { ready: false, connected: false }
+      player1: { connected: true, lastSeen: Date.now() },
+      player2: { connected: false, lastSeen: 0 }
     }).then(function() {
+      // Bağlantı kopunca odayı tamamen silecek ya da p1 durumunu temizleyecek handler
+      roomRef.child('player1').onDisconnect().remove();
       roomRef.onDisconnect().remove();
-      roomRef.child('player1/connected').onDisconnect().set(false);
+
       updateLobbyStatus('Oda Kuruldu! Kod: <strong style="color:#60a5fa; font-size:20px;">' + roomId + '</strong> (Rakip bekleniyor...)');
 
-      roomRef.child('player2/ready').on('value', function(snapshot) {
+      roomRef.child('player2/connected').on('value', function(snapshot) {
         if (snapshot.exists() && snapshot.val() === true) {
-          roomRef.child('player2/ready').off();
+          roomRef.child('player2/connected').off();
           startMultiplayerGame();
         }
       });
@@ -162,22 +165,45 @@ function joinRoom() {
       }
 
       const data = snapshot.val();
-      const p2Connected = data.player2 && data.player2.connected;
+      const now = Date.now();
 
-      if (data.status === 'playing' && p2Connected) {
-        alert("Bu oda dolu ve oyun devam ediyor!");
+      const p1Active = data.player1 && data.player1.connected;
+      const p2Active = data.player2 && data.player2.connected;
+
+      // 60 saniyeden uzun süre işlem yapılmamışsa bayat odayı temizle
+      if (data.lastActive && (now - data.lastActive > 60000) && (!p1Active || !p2Active)) {
+        roomRef.remove();
+        alert("Bu oda süresi dolduğu için kapatılmış. Lütfen yeni bir oda kurun.");
+        return;
+      }
+
+      // Aktif oyuncu sayısını doğrula
+      let activePlayerCount = 0;
+      if (p1Active) activePlayerCount++;
+      if (p2Active) activePlayerCount++;
+
+      if (activePlayerCount >= 2) {
+        alert("Bu oda şu an tam dolu! Katılınamıyor.");
         return;
       }
 
       window.currentRoomId = inputCode;
-      window.myRole = 'player2';
+      
+      // Boş olan role atama yap
+      if (!p1Active) {
+        window.myRole = 'player1';
+      } else {
+        window.myRole = 'player2';
+      }
 
-      roomRef.update({
+      const updateData = {
         status: 'playing',
-        'player2/ready': true,
-        'player2/connected': true
-      }).then(() => {
-        roomRef.child('player2/connected').onDisconnect().set(false);
+        lastActive: now
+      };
+      updateData[window.myRole] = { connected: true, lastSeen: now };
+
+      roomRef.update(updateData).then(() => {
+        roomRef.child(window.myRole).onDisconnect().remove();
         startMultiplayerGame();
       });
     }).catch(function(err) {
@@ -211,7 +237,7 @@ function listenToDisconnections() {
     const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
 
     roomRef.child(opponentRole + '/connected').on('value', function(snapshot) {
-        if (snapshot.exists() && snapshot.val() === false && window.isMultiplayerActive) {
+        if ((!snapshot.exists() || snapshot.val() === false) && window.isMultiplayerActive) {
             window.isMultiplayerActive = false;
             if (broadcastInterval) clearInterval(broadcastInterval);
             alert("Rakibin bağlantısı koptu veya oyundan ayrıldı!");
@@ -225,8 +251,8 @@ function broadcastMyState() {
 
     const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
     
-    // Kendi canlı birliklerimizi gönder
-    const myUnits = units.filter(u => u.owner === myOwnerType);
+    // Sadece CANLI birimleri filtrele, ölüleri ağa hiç dahil etme
+    const myUnits = units.filter(u => u.owner === myOwnerType && u.hp > 0 && !u.isDestroyed);
 
     const unitsData = myUnits.map(u => ({
         id: u.id,
@@ -240,8 +266,7 @@ function broadcastMyState() {
         directionRow: u.directionRow || 0,
         isFlipped: !!u.isFlipped,
         isAttacking: !!u.isAttacking,
-        isMoving: !!u.isMoving,
-        isDestroyed: u.hp <= 0
+        isMoving: !!u.isMoving
     }));
 
     const myBase = window.myRole === 'player1' ? playerBase : aiBase;
@@ -251,6 +276,8 @@ function broadcastMyState() {
       baseHp: Math.max(0, myBase.hp),
       updatedAt: Date.now()
     });
+
+    database.ref('rooms/' + window.currentRoomId + '/lastActive').set(Date.now());
 }
 
 function listenToOpponentData() {
@@ -275,11 +302,7 @@ function listenToOpponentData() {
       const activeOpponentIds = new Set();
 
       networkUnits.forEach(netUnit => {
-        if (netUnit.isDestroyed || netUnit.hp <= 0) {
-            const el = document.getElementById('unit-' + netUnit.id);
-            if (el) el.remove();
-            return;
-        }
+        if (netUnit.hp <= 0) return;
 
         activeOpponentIds.add(netUnit.id);
         let localUnit = units.find(u => u.id === netUnit.id);
@@ -316,7 +339,7 @@ function listenToOpponentData() {
         }
       });
 
-      // Ağda görünmeyen rakip birimleri yerelden temizle
+      // Ağda görünmeyen (yok edilen) rakip birimleri hafızadan ve DOM'dan tamamen temizle
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
         if (u.owner === opponentOwnerType && (!activeOpponentIds.has(u.id) || u.hp <= 0)) {
@@ -811,9 +834,9 @@ function gameLoop() {
         }
     });
 
-    // Ölen kendi birimlerimizi ve rakip birimleri temizle
+    // Ölen birimleri sistemden ve yerel hafızadan kesin olarak temizle
     for (let i = units.length - 1; i >= 0; i--) {
-        if (units[i].hp <= 0) {
+        if (units[i].hp <= 0 || units[i].isDestroyed) {
             const el = document.getElementById(`unit-${units[i].id}`);
             if (el) el.remove();
             units.splice(i, 1);
@@ -853,7 +876,6 @@ setInterval(() => {
 
             let netDamage = Math.max(1, (baseDamage * (1 + rankDamageBonus)) * (1 - targetArmorReduction));
 
-            // Hasarı yerelde düş
             if (target.shieldHp > 0) {
                 if (target.shieldHp >= netDamage) {
                     target.shieldHp -= netDamage;
@@ -872,7 +894,6 @@ setInterval(() => {
 
             triggerFireAnimation(target.x, target.y);
 
-            // Hedef birim öldüyse rütbe artışı ver
             if (target.hp <= 0) {
                 target.hp = 0;
                 target.isDestroyed = true;
