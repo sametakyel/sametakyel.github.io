@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Strateji Oyunu</title>
+
+    <!-- Firebase SDK (Vanilla JS Compatible) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #0f172a;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #f8fafc;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #portrait-warning {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #020617;
+            color: #f8fafc;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #portrait-warning .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            animation: rotateDevice 2s infinite ease-in-out;
+        }
+
+        @keyframes rotateDevice {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        #map-wrapper {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-color: #020617;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #grid-map {
+            display: grid;
+            grid-template-columns: repeat(20, var(--cell-size, 40px));
+            grid-template-rows: repeat(var(--grid-rows, 10), var(--cell-size, 40px));
+            width: calc(var(--cell-size, 40px) * 20);
+            height: calc(var(--cell-size, 40px) * var(--grid-rows, 10));
+            gap: 0;
+            background-color: #1e293b;
+            position: relative;
+            margin: auto;
+        }
+
+        .cell {
+            position: relative;
+            width: var(--cell-size, 40px);
+            height: var(--cell-size, 40px);
+            box-sizing: border-box;
+            background-color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .cell-restricted {
+            background-color: #0f172a !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+            background-image: repeating-linear-gradient(45deg, #1e293b 0, #1e293b 5px, #0f172a 5px, #0f172a 10px);
+        }
+
+        .cell-water {
+            background-color: #0284c7;
+            background-image: radial-gradient(circle, #38bdf8 15%, transparent 16%);
+            background-size: 8px 8px;
+        }
+
+        .cell-rock {
+            background-color: #475569;
+        }
+
+        .cell-selected {
+            outline: 2px dashed #60a5fa !important;
+            outline-offset: -2px;
+            z-index: 20;
+            background-color: rgba(59, 130, 246, 0.25) !important;
+        }
+
+        .unit-entity {
+            position: absolute;
+            z-index: 30;
+            pointer-events: none;
+            transition: left var(--move-speed, 0.4s) linear, 
+                        top var(--move-speed, 0.4s) linear;
+            will-change: left, top;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .unit-rank {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            line-height: 1;
+            color: #fbbf24;
+            text-shadow: 0px 0px 4px #000;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 35;
+        }
+
+        .sprite-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .sprite-wrapper-soldier { transform: scale(0.9); }
+        .sprite-wrapper-tank    { transform: scale(1.0); }
+        .sprite-wrapper-plane   { transform: scale(1.15); }
+
+        .sprite-entity {
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            background-size: 600% 1100%;
+            background-position-y: calc(var(--row, 0) * (100% / 10));
+            background-position-x: 0%;
+        }
+
+        .sprite-soldier-player, .sprite-soldier-ai { background-image: url('https://sametakyel.github.io/asker3.png'); }
+        .sprite-tank-player, .sprite-tank-ai       { background-image: url('https://sametakyel.github.io/tank3.png'); }
+        .sprite-plane-player, .sprite-plane-ai      { background-image: url('https://sametakyel.github.io/jet3.png'); }
+
+        .sprite-flip {
+            transform: scaleX(-1);
+        }
+
+        .sprite-moving, .sprite-attack, .sprite-destroy {
+            animation: spriteGridAnim 0.6s steps(6) infinite !important;
+        }
+
+        .sprite-destroy {
+            animation-iteration-count: 1 !important;
+            animation-fill-mode: forwards !important;
+        }
+
+        @keyframes spriteGridAnim {
+            from { background-position-x: 0%; }
+            to   { background-position-x: 120%; }
+        }
+
+        .base-building-entity {
+            position: absolute;
+            width: 300%;
+            height: 300%;
+            top: -100%;
+            left: -100%;
+            z-index: 24;
+            pointer-events: none;
+            background-image: url('https://sametakyel.github.io/anabina.png');
+            background-size: 800% 200%;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            overflow: hidden;
+            background-position: 100% 0%; 
+        }
+
+        .base-building-destroy { 
+            animation: baseDestroyAnim 1.2s steps(7, end) forwards !important; 
+        }
+
+        @keyframes baseDestroyAnim {
+            0%   { background-position: 0% 100%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        .hp-bar-wrapper {
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120%;
+            min-width: 40px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2px;
+            z-index: 38;
+        }
+
+        .base-hp-wrapper {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140%;
+            min-width: 60px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 3px;
+            z-index: 38;
+        }
+
+        .hp-text-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 1px 2px #000;
+            white-space: nowrap;
+        }
+
+        .hp-bar-container {
+            flex: 1;
+            height: 4px;
+            background: rgba(15, 23, 42, 0.85);
+            border-radius: 2px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .hp-bar-fill { height: 100%; transition: width 0.2s linear; }
+        .hp-bar-player { background: #22c55e; }
+        .hp-bar-ai { background: #ef4444; opacity: 0.8; }
+
+        .hp-bar-fill-bonus {
+            height: 100%;
+            background: #38bdf8;
+            box-shadow: 0 0 5px #0284c7;
+            transition: width 0.2s linear;
+        }
+
+        .attack-effect {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99;
+            background-image: url('https://orig00.deviantart.net/6926/f/2013/194/3/7/explosion_by_benthedwarf-d6bbrxe.gif');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        #top-hud {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .badge-info {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(4px);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-reset-hud {
+            background: rgba(51, 65, 85, 0.85);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        #base-menu {
+            position: absolute;
+            z-index: 1500;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid #334155;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+        }
+
+        .base-menu-row { display: flex; align-items: center; gap: 6px; }
+
+        .btn-base-action {
+            background: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-base-action:hover:not(:disabled) { background: #475569; }
+        .btn-base-action:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
+        .btn-heal-action { background: #15803d; border-color: #22c55e; }
+
+        .cost-tag { font-size: 11px; color: #fbbf24; }
+
+        #toast {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 2000;
+            display: none;
+            border: 1px solid #475569;
+        }
+
+        /* Lobi Modal Stili */
+        #lobby-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.96);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            font-family: sans-serif;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- MULTIPLAYER LOBİ MODALI -->
+<div id="lobby-modal">
+  <h1 style="font-size: 28px; font-weight: bold; margin: 0;">Çok Oyunculu Lobi</h1>
+  <p style="color: #94a3b8; font-size: 14px;">Bir oda kurun ya da arkadaşınızın oda kodunu girin.</p>
+
+  <button onclick="createRoom()" style="padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; min-width: 200px;">
+    ➕ Yeni Oda Kur (Host)
+  </button>
+
+  <div style="display: flex; gap: 8px; margin-top: 10px;">
+    <input type="text" id="room-code-input" placeholder="Oda Kodu Girin" style="padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; text-align: center; font-weight: bold; font-size: 16px; text-transform: uppercase;">
+    <button onclick="joinRoom()" style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+      🚪 Odaya Katıl
+    </button>
+  </div>
+
+  <p id="lobby-status" style="color: #f59e0b; font-size: 14px; margin-top: 10px; min-height: 20px; font-weight: bold;"></p>
+</div>
+
+<div id="portrait-warning">
+    <div class="icon">📱🔄</div>
+    <h2>Lütfen Cihazınızı Yatay Konuma Getirin</h2>
+    <p style="margin-top: 8px; font-size: 14px; opacity: 0.8;">Bu oyun yalnızca yatay (Landscape) modda oynanabilir.</p>
+</div>
+
+<div id="toast"></div>
+
+<div id="game-container">
+    <div id="top-hud">
+        <button class="btn-reset-hud" title="Seçimleri Temizle" onclick="resetSelections()">🛑 Clear</button>
+        <div class="badge-info">💰 <span id="player-gold" style="color:#fbbf24;">50</span></div>
+        <div class="badge-info"><span id="role-label" style="color:#60a5fa;">GİRİŞ YAPILMADI</span></div>
+    </div>
+
+    <div id="base-menu">
+        <div class="base-menu-row">
+            <button class="btn-base-action" onclick="spawnMyUnit('soldier')">
+                <span>🪖 Piyade Üret</span> <span class="cost-tag">10P</span>
+            </button>
+        </div>
+        <div class="base-menu-row">
+            <button class="btn-base-action" onclick="spawnMyUnit('tank')">
+                <span>🚜 Tank Üret</span> <span class="cost-tag">20P</span>
+            </button>
+        </div>
+        <div class="base-menu-row">
+            <button class="btn-base-action" onclick="spawnMyUnit('plane')">
+                <span>✈️ Uçak Üret</span> <span class="cost-tag">30P</span>
+            </button>
+        </div>
+        <div class="base-menu-row">
+            <button class="btn-base-action btn-heal-action" id="btn-heal" onclick="healAllUnits()">
+                <span>💚 Orduyu İyileştir</span> <span class="cost-tag" id="heal-timer-text">25P</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="map-wrapper">
+        <div id="grid-map"></div>
+    </div>
+</div>
+
+<script>
+// -------------------------------------------------------------
+// 1. FIREBASE BAŞLATMA VE GLOBAL DEĞİŞKENLER
+// -------------------------------------------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyDd5DqjjMf9I3WyUGzuzrc1smzjYV1hkv8",
+  authDomain: "savasgame-107ef.firebaseapp.com",
+  databaseURL: "https://savasgame-107ef-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "savasgame-107ef",
+  storageBucket: "savasgame-107ef.firebasestorage.app",
+  messagingSenderId: "40599264451",
+  appId: "1:40599264451:web:2333073bf3990b22e81676",
+  measurementId: "G-LEFKSMRGPK"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+window.currentRoomId = null;
+window.myRole = null; // 'player1' (Mavi/Sol) veya 'player2' (Kırmızı/Sağ)
+window.isMultiplayerActive = false;
+let broadcastInterval = null;
+
+const GRID_COLS = 20;
+let GRID_ROWS = 10;
+const MAX_RANK = 3;
+
+let playerGold = 50;
+let units = [];
+let selectedUnitId = null;
+
+let isHealOnCooldown = false;
+let healCooldownTimer = null;
+let cellSizePx = 40;
+
+let playerBase = { x: 1, y: 5, hp: 1000, maxHp: 1000, owner: 'player', isDestroyed: false };
+let aiBase = { x: GRID_COLS - 2, y: 5, hp: 1000, maxHp: 1000, owner: 'ai', isDestroyed: false };
+
+let rockObstacles = [];
+let waterObstacles = [];
+
+const UNIT_TYPES = {
+    soldier: { category: 'soldier', cost: 10, hp: 30,  dmg: 8,   interval: 1600, moveSpeed: 450, attackRange: 1, maxLimit: 99, label: 'Piyade' },
+    tank:    { category: 'tank',    cost: 20, hp: 120, dmg: 25,  interval: 2400, moveSpeed: 520, attackRange: 1, maxLimit: 5,  label: 'Tank' },
+    plane:   { category: 'plane',   cost: 30, hp: 200, dmg: 45,  interval: 3600, moveSpeed: 240, attackRange: 1, maxLimit: 3,  label: 'Uçak' }
+};
+
+// -------------------------------------------------------------
+// 2. ODA KURMA / KATILMA YÖNETİMİ
+// -------------------------------------------------------------
+function createRoom() {
+    const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    window.currentRoomId = roomId;
+    window.myRole = 'player1';
+
+    const roomRef = database.ref('rooms/' + roomId);
+
+    roomRef.set({
+      createdAt: Date.now(),
+      status: 'waiting',
+      player1: { ready: true },
+      player2: { ready: false }
+    }).then(function() {
+      roomRef.onDisconnect().remove();
+      updateLobbyStatus('Oda Kuruldu! Kod: <strong style="color:#60a5fa; font-size:20px;">' + roomId + '</strong> (Rakip bekleniyor...)');
+
+      roomRef.child('player2/ready').on('value', function(snapshot) {
+        if (snapshot.exists() && snapshot.val() === true) {
+          roomRef.child('player2/ready').off();
+          startMultiplayerGame();
+        }
+      });
+    }).catch(function(err) {
+      alert("Oda oluşturulamadı: " + err.message);
+    });
+}
+
+function joinRoom() {
+    const inputEl = document.getElementById('room-code-input');
+    const inputCode = inputEl ? inputEl.value.trim().toUpperCase() : '';
+
+    if (!inputCode) {
+      alert("Lütfen geçerli bir oda kodu girin!");
+      return;
+    }
+
+    const roomRef = database.ref('rooms/' + inputCode);
+
+    roomRef.once('value').then(function(snapshot) {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        if (data.status === 'waiting') {
+          window.currentRoomId = inputCode;
+          window.myRole = 'player2';
+
+          roomRef.update({
+            status: 'playing',
+            'player2/ready': true
+          });
+
+          roomRef.child('player2/ready').onDisconnect().set(false);
+          startMultiplayerGame();
+        } else {
+          alert("Oda dolu veya oyun zaten başlamış!");
+        }
+      } else {
+        alert("Oda bulunamadı!");
+      }
+    });
+}
+
+function startMultiplayerGame() {
+    window.isMultiplayerActive = true;
+    document.getElementById('lobby-modal').style.display = 'none';
+
+    const roleText = window.myRole === 'player1' ? 'Mavi Takım (Sol)' : 'Kırmızı Takım (Sağ)';
+    document.getElementById('role-label').innerText = 'ROL: ' + roleText;
+
+    listenToOpponentData();
+
+    if (broadcastInterval) clearInterval(broadcastInterval);
+    broadcastInterval = setInterval(broadcastMyState, 200);
+
+    requestAnimationFrame(gameLoop);
+}
+
+function updateLobbyStatus(msg) {
+    const el = document.getElementById('lobby-status');
+    if (el) el.innerHTML = msg;
+}
+
+// -------------------------------------------------------------
+// 3. AĞ SENKRONİZASYON MOTORU (SEND & RECEIVE)
+// -------------------------------------------------------------
+function broadcastMyState() {
+    if (!window.isMultiplayerActive || !window.currentRoomId) return;
+
+    const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
+    const myUnits = units.filter(u => u.owner === myOwnerType && !u.isDestroyed);
+
+    const unitsData = myUnits.map(u => ({
+        id: u.id,
+        type: u.type,
+        x: Math.round(u.x * 100) / 100,
+        y: Math.round(u.y * 100) / 100,
+        hp: u.hp,
+        maxHp: u.maxHp || u.hp,
+        shieldHp: u.shieldHp || 0,
+        rank: u.rank || 0,
+        directionRow: u.directionRow || 0,
+        isFlipped: !!u.isFlipped,
+        isAttacking: !!u.isAttacking,
+        isMoving: !!u.isMoving
+    }));
+
+    const myBase = window.myRole === 'player1' ? playerBase : aiBase;
+
+    database.ref('rooms/' + window.currentRoomId + '/gameState/' + window.myRole).set({
+      units: unitsData,
+      baseHp: myBase.hp,
+      updatedAt: Date.now()
+    });
+}
+
+function listenToOpponentData() {
+    const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
+    const opponentOwnerType = window.myRole === 'player1' ? 'ai' : 'player';
+
+    database.ref('rooms/' + window.currentRoomId + '/gameState/' + opponentRole).on('value', function(snapshot) {
+      if (!snapshot.exists()) return;
+
+      const data = snapshot.val();
+      const networkUnits = data.units || [];
+      const opponentBaseHp = data.baseHp;
+
+      if (window.myRole === 'player1') {
+        aiBase.hp = opponentBaseHp;
+      } else {
+        playerBase.hp = opponentBaseHp;
+      }
+
+      const activeOpponentIds = {};
+
+      networkUnits.forEach(netUnit => {
+        activeOpponentIds[netUnit.id] = true;
+        let localUnit = units.find(u => u.id === netUnit.id);
+
+        if (localUnit) {
+          localUnit.x = netUnit.x;
+          localUnit.y = netUnit.y;
+          localUnit.hp = netUnit.hp;
+          localUnit.shieldHp = netUnit.shieldHp;
+          localUnit.rank = netUnit.rank;
+          localUnit.directionRow = netUnit.directionRow;
+          localUnit.isFlipped = netUnit.isFlipped;
+          localUnit.isAttacking = netUnit.isAttacking;
+          localUnit.isMoving = netUnit.isMoving;
+        } else {
+          units.push({
+            id: netUnit.id,
+            type: netUnit.type,
+            owner: opponentOwnerType,
+            x: netUnit.x,
+            y: netUnit.y,
+            hp: netUnit.hp,
+            maxHp: netUnit.maxHp,
+            shieldHp: netUnit.shieldHp,
+            rank: netUnit.rank,
+            directionRow: netUnit.directionRow,
+            isFlipped: netUnit.isFlipped,
+            isAttacking: netUnit.isAttacking,
+            isMoving: netUnit.isMoving,
+            isDestroyed: false,
+            path: []
+          });
+        }
+      });
+
+      units.forEach(u => {
+        if (u.owner === opponentOwnerType && !activeOpponentIds[u.id]) {
+          u.isDestroyed = true;
+          const el = document.getElementById('unit-' + u.id);
+          if (el) el.remove();
+        }
+      });
+
+      units = units.filter(u => !(u.owner === opponentOwnerType && u.isDestroyed));
+      syncUnitsDOM();
+    });
+}
+
+// -------------------------------------------------------------
+// 4. HARİTA VE OYUN ALANI MANTIĞI
+// -------------------------------------------------------------
+function resizeGridMap() {
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const portraitWarning = document.getElementById('portrait-warning');
+
+    if (!isLandscape) {
+        portraitWarning.style.display = 'flex';
+        return;
+    } else {
+        portraitWarning.style.display = 'none';
+    }
+
+    cellSizePx = Math.floor(window.innerWidth / GRID_COLS);
+    GRID_ROWS = Math.floor(window.innerHeight / cellSizePx);
+
+    const midY = Math.floor(GRID_ROWS / 2);
+    playerBase.y = midY;
+    aiBase.y = midY;
+
+    rockObstacles = [
+        {x: 6, y: midY - 3}, {x: 6, y: midY - 2}, {x: 6, y: midY - 1},
+        {x: 13, y: midY + 1}, {x: 13, y: midY + 2}, {x: 13, y: midY + 3}
+    ];
+
+    waterObstacles = [
+        {x: 10, y: midY - 4}, {x: 10, y: midY - 3}, {x: 10, y: midY - 2},
+        {x: 10, y: midY + 2}, {x: 10, y: midY + 3}, {x: 10, y: midY + 4}
+    ];
+
+    document.documentElement.style.setProperty('--cell-size', `${cellSizePx}px`);
+    document.documentElement.style.setProperty('--grid-rows', GRID_ROWS);
+
+    initGridMap();
+    syncUnitsDOM();
+}
+
+function initGridMap() {
+    const mapEl = document.getElementById('grid-map');
+    mapEl.innerHTML = '';
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+            const cell = document.createElement('div');
+            cell.id = `cell-${c}-${r}`;
+            cell.dataset.x = c;
+            cell.dataset.y = r;
+
+            let isRestrictedBorder = (c === 0 || c === GRID_COLS - 1);
+            let isRock = rockObstacles.some(o => o.x === c && o.y === r);
+            let isWater = waterObstacles.some(w => w.x === c && w.y === r);
+
+            if (isRestrictedBorder) cell.className = 'cell cell-restricted';
+            else if (isRock) cell.className = 'cell cell-rock';
+            else if (isWater) cell.className = 'cell cell-water';
+            else cell.className = 'cell';
+
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleCellClick(c, r);
+            });
+            mapEl.appendChild(cell);
+        }
+    }
+}
+
+function closeBaseMenu() {
+    const baseMenu = document.getElementById('base-menu');
+    if (baseMenu) baseMenu.style.display = 'none';
+}
+
+function openBaseMenuAroundMyBase() {
+    const myBaseObj = window.myRole === 'player1' ? playerBase : aiBase;
+    const baseMenu = document.getElementById('base-menu');
+    const baseCell = document.getElementById(`cell-${myBaseObj.x}-${myBaseObj.y}`);
+    if (!baseCell) return;
+
+    const rect = baseCell.getBoundingClientRect();
+    baseMenu.style.display = 'flex';
+    if (window.myRole === 'player1') {
+        baseMenu.style.left = `${rect.right + 10}px`;
+    } else {
+        baseMenu.style.left = `${rect.left - 160}px`;
+    }
+    baseMenu.style.top = `${Math.max(10, rect.top - 20)}px`;
+}
+
+document.body.addEventListener('click', () => {
+    closeBaseMenu();
+});
+
+function getUnitOccupiedTiles(unit) {
+    return [{ x: unit.x, y: unit.y }].filter(t => t.x >= 0 && t.x < GRID_COLS && t.y >= 0 && t.y < GRID_ROWS);
+}
+
+function getBaseTiles(base) {
+    let tiles = [];
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            tiles.push({ x: base.x + dx, y: base.y + dy });
+        }
+    }
+    return tiles.filter(t => t.x >= 0 && t.x < GRID_COLS && t.y >= 0 && t.y < GRID_ROWS);
+}
+
+function getBestAdjacentAttackTile(attacker, targetObj) {
+    const targetTiles = targetObj.owner && !targetObj.type ? getBaseTiles(targetObj) : getUnitOccupiedTiles(targetObj);
+    let validNeighbors = [];
+
+    targetTiles.forEach(tTile => {
+        let neighbors = [
+            { x: tTile.x, y: tTile.y - 1 }, { x: tTile.x + 1, y: tTile.y },
+            { x: tTile.x, y: tTile.y + 1 }, { x: tTile.x - 1, y: tTile.y },
+            { x: tTile.x - 1, y: tTile.y - 1 }, { x: tTile.x + 1, y: tTile.y - 1 },
+            { x: tTile.x - 1, y: tTile.y + 1 }, { x: tTile.x + 1, y: tTile.y + 1 }
+        ];
+
+        neighbors.forEach(n => {
+            if (!targetTiles.some(tt => tt.x === n.x && tt.y === n.y) && !isTileBlockedForUnit(attacker, n.x, n.y, true)) {
+                if (!validNeighbors.some(vn => vn.x === n.x && vn.y === n.y)) {
+                    validNeighbors.push(n);
+                }
+            }
+        });
+    });
+
+    if (validNeighbors.length === 0) return null;
+    validNeighbors.sort((a, b) => heuristic(attacker.x, attacker.y, a.x, a.y) - heuristic(attacker.x, attacker.y, b.x, b.y));
+    return validNeighbors[0];
+}
+
+function isTargetInAttackRange(attacker, targetObj) {
+    const tilesA = getUnitOccupiedTiles(attacker);
+    const tilesB = targetObj.owner && !targetObj.type ? getBaseTiles(targetObj) : getUnitOccupiedTiles(targetObj);
+    const range = UNIT_TYPES[attacker.type].attackRange;
+
+    for (let tA of tilesA) {
+        for (let tB of tilesB) {
+            let distX = Math.abs(tA.x - tB.x);
+            let distY = Math.abs(tA.y - tB.y);
+            if (distX <= range && distY <= range) return true;
+        }
+    }
+    return false;
+}
+
+function findEmptySpawnTileAroundBase(base, type) {
+    const directions = [
+        { x: 0, y: -2 }, { x: 2, y: 0 }, { x: 0, y: 2 }, { x: -2, y: 0 },
+        { x: 2, y: -2 }, { x: 2, y: 2 }, { x: -2, y: 2 }, { x: -2, y: -2 }
+    ];
+
+    for (let dir of directions) {
+        let checkX = base.x + dir.x;
+        let checkY = base.y + dir.y;
+
+        if (checkX >= 1 && checkX <= GRID_COLS - 2 && checkY >= 1 && checkY < GRID_ROWS - 1) {
+            let tempUnit = { type: type, x: checkX, y: checkY };
+            let occ = getUnitOccupiedTiles(tempUnit);
+
+            let hasObstacle = occ.some(t => 
+                (type !== 'plane' && (rockObstacles.some(o => o.x === t.x && o.y === t.y) || waterObstacles.some(w => w.x === t.x && w.y === t.y)))
+            );
+
+            let isOccupiedByUnit = units.some(u => !u.isDestroyed && getUnitOccupiedTiles(u).some(ut => occ.some(t => t.x === ut.x && t.y === ut.y)));
+
+            if (!hasObstacle && !isOccupiedByUnit) return { x: checkX, y: checkY };
+        }
+    }
+    return null;
+}
+
+// -------------------------------------------------------------
+// 5. OYUNCU HAMLELERİ VE KONTROL YÖNETİMİ
+// -------------------------------------------------------------
+function spawnMyUnit(type) {
+    if (!window.isMultiplayerActive) {
+        showToast("Lütfen önce multiplayer bir odaya katılın!");
+        return;
+    }
+
+    const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
+    const myBaseObj = window.myRole === 'player1' ? playerBase : aiBase;
+    const config = UNIT_TYPES[type];
+    const count = units.filter(u => u.owner === myOwner && u.type === type).length;
+
+    if (count >= config.maxLimit) {
+        showToast(`Maksimum ${config.maxLimit} ${config.label} sınırına ulaşıldı!`);
+        return;
+    }
+
+    if (playerGold >= config.cost) {
+        let spawnTile = findEmptySpawnTileAroundBase(myBaseObj, type);
+        if (!spawnTile) {
+            showToast("Bina çevresi dolu!");
+            return;
+        }
+        playerGold -= config.cost;
+        createUnit(type, myOwner, spawnTile.x, spawnTile.y);
+        updateUI();
+        closeBaseMenu();
+    } else {
+        showToast("Yetersiz altın!");
+    }
+}
+
+function createUnit(type, owner, x, y) {
+    const config = UNIT_TYPES[type];
+    
+    const unit = {
+        id: 'u_' + Math.random().toString(36).substring(2, 9),
+        type, owner, x, y,
+        hp: config.hp, maxHp: config.hp, baseHp: config.hp, 
+        shieldHp: 0, maxShieldHp: 0,
+        baseDmg: config.dmg, kills: 0, rank: 0, 
+        directionRow: owner === 'player' ? 2 : 2,
+        isFlipped: owner === 'ai',
+        lastAttack: 0, lastMoveTime: 0, 
+        targetX: null, targetY: null, 
+        targetUnitId: null, 
+        path: [],
+        isAttacking: false,
+        isMoving: false,
+        isDestroyed: false
+    };
+    units.push(unit);
+    syncUnitsDOM();
+}
+
+function resetSelections() {
+    selectedUnitId = null;
+    closeBaseMenu();
+    showToast("Tüm seçimler temizlendi.");
+    syncUnitsDOM();
+}
+
+function handleCellClick(x, y) {
+    closeBaseMenu();
+    if (!window.isMultiplayerActive) return;
+
+    const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
+    const opponentOwner = window.myRole === 'player1' ? 'ai' : 'player';
+    const myBaseObj = window.myRole === 'player1' ? playerBase : aiBase;
+    const opponentBaseObj = window.myRole === 'player1' ? aiBase : playerBase;
+
+    if (x === 0 || x === GRID_COLS - 1) {
+        showToast("Bu kenar bölgeye hareket edilemez!");
+        return;
+    }
+
+    // Kendi Üssüne Tıklanırsa Üretim Menüsünü Aç
+    if (getBaseTiles(myBaseObj).some(t => t.x === x && t.y === y)) {
+        selectedUnitId = null;
+        openBaseMenuAroundMyBase();
+        syncUnitsDOM();
+        return;
+    }
+
+    const clickedUnit = units.find(u => !u.isDestroyed && getUnitOccupiedTiles(u).some(t => t.x === x && t.y === y));
+
+    // Kendi Birliğimize Tıklandıysa Seç
+    if (clickedUnit && clickedUnit.owner === myOwner) {
+        selectedUnitId = clickedUnit.id;
+        syncUnitsDOM();
+        return;
+    }
+
+    // Birliğimiz Seçiliyken Başka Yere Tıklandıysa (Hareket/Saldırı)
+    if (selectedUnitId) {
+        const unit = units.find(u => u.id === selectedUnitId);
+        if (!unit || unit.owner !== myOwner) return;
+
+        if (clickedUnit && clickedUnit.owner === opponentOwner) {
+            unit.targetUnitId = clickedUnit.id;
+            orderUnitToAttackTarget(unit, clickedUnit);
+        }
+        else if (getBaseTiles(opponentBaseObj).some(t => t.x === x && t.y === y)) {
+            unit.targetUnitId = null;
+            let bestTile = getBestAdjacentAttackTile(unit, opponentBaseObj);
+            if (bestTile) setUnitTarget(unit, bestTile.x, bestTile.y);
+        }
+        else {
+            unit.targetUnitId = null;
+            setUnitTarget(unit, x, y);
+        }
+
+        selectedUnitId = null;
+        syncUnitsDOM();
+    }
+}
+
+function orderUnitToAttackTarget(unit, targetEnemy) {
+    if (isTargetInAttackRange(unit, targetEnemy)) {
+        unit.path = [];
+        unit.targetX = null;
+        unit.targetY = null;
+        return;
+    }
+
+    let bestTile = getBestAdjacentAttackTile(unit, targetEnemy);
+    if (bestTile) {
+        setUnitTarget(unit, bestTile.x, bestTile.y);
+    }
+}
+
+function setUnitTarget(unit, tx, ty) {
+    unit.targetX = tx;
+    unit.targetY = ty;
+    unit.path = findPathAStar(unit, tx, ty);
+}
+
+function findPathAStar(unit, targetX, targetY) {
+    let startX = unit.x, startY = unit.y;
+    if (startX === targetX && startY === targetY) return [];
+
+    let openSet = [], closedSet = new Set();
+    openSet.push({ x: startX, y: startY, g: 0, h: heuristic(startX, startY, targetX, targetY), parent: null });
+
+    while (openSet.length > 0) {
+        openSet.sort((a, b) => (a.g + a.h) - (b.g + b.h));
+        let current = openSet.shift();
+
+        if (current.x === targetX && current.y === targetY) {
+            let path = [];
+            let temp = current;
+            while (temp.parent) { path.push({ x: temp.x, y: temp.y }); temp = temp.parent; }
+            return path.reverse();
+        }
+
+        closedSet.add(`${current.x},${current.y}`);
+
+        let neighbors = [
+            { x: current.x, y: current.y - 1 }, { x: current.x + 1, y: current.y },
+            { x: current.x, y: current.y + 1 }, { x: current.x - 1, y: current.y },
+            { x: current.x - 1, y: current.y - 1 }, { x: current.x + 1, y: current.y - 1 },
+            { x: current.x - 1, y: current.y + 1 }, { x: current.x + 1, y: current.y + 1 }
+        ];
+
+        for (let n of neighbors) {
+            if (n.x <= 0 || n.x >= GRID_COLS - 1 || n.y < 0 || n.y >= GRID_ROWS) continue;
+            if (closedSet.has(`${n.x},${n.y}`)) continue;
+
+            let isFinalStep = (n.x === targetX && n.y === targetY);
+            if (isTileBlockedForUnit(unit, n.x, n.y, isFinalStep)) continue;
+
+            let gScore = current.g + 1;
+            let existingNode = openSet.find(o => o.x === n.x && o.y === n.y);
+
+            if (!existingNode) {
+                openSet.push({ x: n.x, y: n.y, g: gScore, h: heuristic(n.x, n.y, targetX, targetY), parent: current });
+            } else if (gScore < existingNode.g) {
+                existingNode.g = gScore;
+                existingNode.parent = current;
+            }
+        }
+    }
+    return [];
+}
+
+function isTileBlockedForUnit(unit, checkX, checkY, isFinalDestination) {
+    if (checkX <= 0 || checkX >= GRID_COLS - 1 || checkY < 0 || checkY >= GRID_ROWS) return true;
+
+    const isPlayerBaseTile = getBaseTiles(playerBase).some(t => t.x === checkX && t.y === checkY);
+    const isAiBaseTile = getBaseTiles(aiBase).some(t => t.x === checkX && t.y === checkY);
+    if (isPlayerBaseTile || isAiBaseTile) return true;
+
+    if (unit.type !== 'plane') {
+        if (rockObstacles.some(o => o.x === checkX && o.y === checkY)) return true;
+        if (waterObstacles.some(w => w.x === checkX && w.y === checkY)) return true;
+    }
+
+    const otherUnitsOnTile = units.filter(u => !u.isDestroyed && u.id !== unit.id && u.x === checkX && u.y === checkY);
+
+    for (let otherUnit of otherUnitsOnTile) {
+        if (otherUnit.owner !== unit.owner) {
+            return true;
+        } else {
+            if (isFinalDestination) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function heuristic(x1, y1, x2, y2) { return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2)); }
+
+function updateUnitDirection(unit, toX, toY) {
+    let dx = toX - unit.x;
+    let dy = toY - unit.y;
+    if (dx === 0 && dy === 0) return;
+
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angle < 0) angle += 360;
+
+    if (angle >= 247.5 && angle < 292.5) { 
+        unit.directionRow = 0; unit.isFlipped = false;
+    } else if (angle >= 292.5 && angle < 337.5) { 
+        unit.directionRow = 1; unit.isFlipped = false;
+    } else if (angle >= 337.5 || angle < 22.5) { 
+        unit.directionRow = 2; unit.isFlipped = false;
+    } else if (angle >= 22.5 && angle < 67.5) { 
+        unit.directionRow = 3; unit.isFlipped = false;
+    } else if (angle >= 67.5 && angle < 112.5) { 
+        unit.directionRow = 4; unit.isFlipped = false;
+    } else if (angle >= 112.5 && angle < 157.5) { 
+        unit.directionRow = 3; unit.isFlipped = true;
+    } else if (angle >= 157.5 && angle < 202.5) { 
+        unit.directionRow = 2; unit.isFlipped = true;
+    } else if (angle >= 202.5 && angle < 247.5) { 
+        unit.directionRow = 1; unit.isFlipped = true;
+    }
+}
+
+function triggerFireAnimation(x, y) {
+    const cell = document.getElementById(`cell-${x}-${y}`);
+    if (!cell) return;
+
+    let fireEl = document.createElement("div");
+    fireEl.className = "attack-effect";
+    cell.appendChild(fireEl);
+
+    setTimeout(() => { fireEl.remove(); }, 500);
+}
+
+// -------------------------------------------------------------
+// 6. OYUN DÖNGÜSÜ (GAME LOOP & COMBAT LOGIC)
+// -------------------------------------------------------------
+setInterval(() => {
+    if (window.isMultiplayerActive) {
+        playerGold += 5;
+        updateUI();
+    }
+}, 1000);
+
+// Hedefe kilitlenen kendi birimlerimizin takibi
+setInterval(() => {
+    if (!window.isMultiplayerActive) return;
+    const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
+
+    units.filter(u => u.owner === myOwner && !u.isDestroyed && u.targetUnitId).forEach(unit => {
+        const targetEnemy = units.find(e => e.id === unit.targetUnitId && !e.isDestroyed);
+        if (!targetEnemy) {
+            unit.targetUnitId = null;
+            unit.path = [];
+            return;
+        }
+
+        if (isTargetInAttackRange(unit, targetEnemy)) {
+            unit.path = [];
+            unit.targetX = null;
+            unit.targetY = null;
+        } 
+        else if (!unit.isMoving || (unit.path.length === 0)) {
+            orderUnitToAttackTarget(unit, targetEnemy);
+        }
+    });
+}, 500);
+
+function gameLoop() {
+    if (!window.isMultiplayerActive) return;
+    const now = Date.now();
+    const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
+
+    units.forEach(u => {
+        if (u.isDestroyed || u.owner !== myOwner) return;
+
+        const moveInterval = UNIT_TYPES[u.type].moveSpeed;
+
+        if (u.path && u.path.length > 0) {
+            u.isMoving = true;
+            if (now - u.lastMoveTime >= moveInterval) {
+                let nextStep = u.path[0];
+                let isFinalStep = (u.path.length === 1);
+
+                if (!isTileBlockedForUnit(u, nextStep.x, nextStep.y, isFinalStep)) {
+                    updateUnitDirection(u, nextStep.x, nextStep.y);
+                    u.x = nextStep.x;
+                    u.y = nextStep.y;
+                    u.lastMoveTime = now;
+                    u.path.shift();
+                } else {
+                    if (u.targetX !== null && u.targetY !== null) {
+                        u.path = findPathAStar(u, u.targetX, u.targetY);
+                    }
+                }
+            }
+        } else {
+            u.isMoving = false;
+        }
+    });
+
+    syncUnitsDOM();
+    requestAnimationFrame(gameLoop);
+}
+
+// Saldırı Hesabı (Local Authority)
+setInterval(() => {
+    if (!window.isMultiplayerActive) return;
+    const now = Date.now();
+    const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
+
+    units.filter(u => u.owner === myOwner && !u.isDestroyed).forEach(attacker => {
+        const attackInterval = UNIT_TYPES[attacker.type].interval;
+        if (now - attacker.lastAttack < attackInterval) return;
+
+        let targets = units.filter(target => target.owner !== attacker.owner && !target.isDestroyed && isTargetInAttackRange(attacker, target));
+
+        if (attacker.targetUnitId) {
+            let lockedTarget = targets.find(t => t.id === attacker.targetUnitId);
+            if (lockedTarget) targets = [lockedTarget, ...targets.filter(t => t.id !== attacker.targetUnitId)];
+        }
+
+        if (targets.length > 0) {
+            const target = targets[0];
+            
+            if (!attacker.isMoving) {
+                updateUnitDirection(attacker, target.x, target.y);
+            }
+
+            let baseDamage = attacker.baseDmg;
+            let rankDamageBonus = attacker.rank * 0.35;
+            let targetArmorReduction = target.rank * 0.20;
+
+            let netDamage = Math.max(1, (baseDamage * (1 + rankDamageBonus)) * (1 - targetArmorReduction));
+
+            if (target.shieldHp > 0) {
+                if (target.shieldHp >= netDamage) {
+                    target.shieldHp -= netDamage;
+                } else {
+                    let overflowDmg = netDamage - target.shieldHp;
+                    target.shieldHp = 0;
+                    target.hp -= overflowDmg;
+                }
+            } else {
+                target.hp -= netDamage;
+            }
+
+            attacker.lastAttack = now;
+            attacker.isAttacking = true;
+            setTimeout(() => { attacker.isAttacking = false; }, 400);
+
+            triggerFireAnimation(target.x, target.y);
+
+            if (target.hp <= 0 && !target.isDestroyed) {
+                target.isDestroyed = true;
+                if (attacker.rank < MAX_RANK) {
+                    attacker.kills += 1;
+                    attacker.rank += 1;
+                    showToast(`Birliğiniz Rütbe Atladı! ⭐x${attacker.rank}`);
+                }
+
+                setTimeout(() => {
+                    const el = document.getElementById(`unit-${target.id}`);
+                    if (el) el.remove();
+                    units = units.filter(u => u.id !== target.id);
+                }, 800);
+            }
+        } else {
+            const enemyBase = window.myRole === 'player1' ? aiBase : playerBase;
+            if (isTargetInAttackRange(attacker, enemyBase)) {
+                if (!attacker.isMoving) {
+                    updateUnitDirection(attacker, enemyBase.x, enemyBase.y);
+                }
+
+                let netDamage = attacker.baseDmg * (1 + (attacker.rank * 0.35));
+                enemyBase.hp -= netDamage;
+                attacker.lastAttack = now;
+                attacker.isAttacking = true;
+                setTimeout(() => { attacker.isAttacking = false; }, 400);
+
+                triggerFireAnimation(enemyBase.x, enemyBase.y);
+
+                if (enemyBase.hp <= 0 && !enemyBase.isDestroyed) {
+                    enemyBase.isDestroyed = true;
+                    syncUnitsDOM();
+                    setTimeout(() => {
+                        alert("TEBRİKLER! RAKİP BİNA YOK EDİLDİ, ZAFER SENİN!");
+                        location.reload();
+                    }, 1200);
+                }
+            }
+        }
+    });
+}, 400);
+
+function healAllUnits() {
+    if (isHealOnCooldown || !window.isMultiplayerActive) return;
+    const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
+    const myBaseObj = window.myRole === 'player1' ? playerBase : aiBase;
+
+    if (playerGold < 25) {
+        showToast("Yetersiz Puan (25P Gerekli)!");
+        return;
+    }
+
+    playerGold -= 25;
+
+    if (selectedUnitId) {
+        const unit = units.find(u => u.id === selectedUnitId && u.owner === myOwner);
+        if (unit && !unit.isDestroyed) {
+            unit.hp = unit.maxHp;
+            let extraShield = unit.baseHp * 0.5;
+            unit.maxShieldHp = extraShield;
+            unit.shieldHp = extraShield;
+            showToast("Seçili birimin canlı zırh barı genişletildi! 🛡️💙");
+        }
+    } else {
+        myBaseObj.hp = Math.min(myBaseObj.maxHp, myBaseObj.hp + (myBaseObj.maxHp * 0.25));
+
+        units.filter(u => u.owner === myOwner && !u.isDestroyed).forEach(u => {
+            let healAmount = u.baseHp * 0.25;
+            u.hp = Math.min(u.maxHp, u.hp + healAmount);
+        });
+
+        showToast("Tüm orduya %25 Can Desteği Verildi! 💚");
+    }
+
+    startHealCooldown();
+    updateUI();
+    syncUnitsDOM();
+    closeBaseMenu();
+}
+
+function startHealCooldown() {
+    isHealOnCooldown = true;
+
+    const btn = document.getElementById("btn-heal");
+    const timerText = document.getElementById("heal-timer-text");
+    if (btn) btn.disabled = true;
+
+    let timeLeft = 15;
+    if (timerText) timerText.innerText = `${timeLeft}s`;
+
+    healCooldownTimer = setInterval(() => {
+        timeLeft--;
+        const tEl = document.getElementById("heal-timer-text");
+        if (timeLeft > 0) {
+            if (tEl) tEl.innerText = `${timeLeft}s`;
+        } else {
+            clearInterval(healCooldownTimer);
+            isHealOnCooldown = false;
+            if (btn) btn.disabled = false;
+            if (tEl) tEl.innerText = "25P";
+        }
+    }, 1000);
+}
+
+// -------------------------------------------------------------
+// 7. EKRAN GÖRSEL ÇİZİMİ (RENDER DOM)
+// -------------------------------------------------------------
+function syncUnitsDOM() {
+    const mapEl = document.getElementById('grid-map');
+    if (!mapEl) return;
+    
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('cell-selected'));
+
+    units.forEach(u => {
+        if (u.id === selectedUnitId) {
+            getUnitOccupiedTiles(u).forEach(t => {
+                const c = document.getElementById(`cell-${t.x}-${t.y}`);
+                if (c) c.classList.add('cell-selected');
+            });
+        }
+
+        let unitEl = document.getElementById(`unit-${u.id}`);
+        const config = UNIT_TYPES[u.type];
+
+        const leftPx = u.x * cellSizePx;
+        const topPx = u.y * cellSizePx;
+
+        if (!unitEl) {
+            unitEl = document.createElement('div');
+            unitEl.id = `unit-${u.id}`;
+            unitEl.className = 'unit-entity';
+            
+            unitEl.innerHTML = `
+                <div class="unit-rank"></div>
+                <div class="sprite-wrapper">
+                    <div class="sprite-entity"></div>
+                </div>
+                <div class="hp-bar-wrapper">
+                    <span class="hp-text-label"></span>
+                    <div class="hp-bar-container">
+                        <div class="hp-bar-fill"></div>
+                        <div class="hp-bar-fill-bonus" style="display:none;"></div>
+                    </div>
+                </div>
+            `;
+            mapEl.appendChild(unitEl);
+        }
+
+        unitEl.style.width = `${cellSizePx}px`;
+        unitEl.style.height = `${cellSizePx}px`;
+        unitEl.style.left = `${leftPx}px`;
+        unitEl.style.top = `${topPx}px`;
+        unitEl.style.setProperty('--move-speed', `${config ? config.moveSpeed : 400}ms`);
+
+        const rankEl = unitEl.querySelector('.unit-rank');
+        const wrapperEl = unitEl.querySelector('.sprite-wrapper');
+        const entityEl = unitEl.querySelector('.sprite-entity');
+        const hpTextEl = unitEl.querySelector('.hp-text-label');
+        const hpBarFillEl = unitEl.querySelector('.hp-bar-fill');
+        const shieldBarFillEl = unitEl.querySelector('.hp-bar-fill-bonus');
+
+        wrapperEl.className = `sprite-wrapper sprite-wrapper-${u.type}`;
+
+        let activeRow = 0;
+        if (u.isDestroyed) {
+            activeRow = 10;
+        } else if (u.isAttacking) {
+            activeRow = u.directionRow + 5;
+        } else {
+            activeRow = u.directionRow;
+        }
+
+        let animClass = '';
+        if (u.isDestroyed) {
+            animClass = 'sprite-destroy';
+        } else if (u.isAttacking) {
+            animClass = 'sprite-attack';
+        } else if (u.isMoving) {
+            animClass = 'sprite-moving';
+        }
+
+        let flipClass = u.isFlipped ? 'sprite-flip' : '';
+        let spriteClass = `sprite-${u.type}-${u.owner === 'player' ? 'player' : 'ai'}`;
+        entityEl.className = `sprite-entity ${spriteClass} ${animClass} ${flipClass}`.trim();
+
+        entityEl.style.setProperty('--row', activeRow);
+
+        let totalCurrentHp = Math.round(u.hp + (u.shieldHp || 0));
+        let hpPercent = Math.min(100, Math.max(0, (u.hp / u.maxHp) * 100));
+        let shieldPercent = u.maxShieldHp > 0 ? Math.min(100, Math.max(0, (u.shieldHp / u.maxShieldHp) * 100)) : 0;
+        let hpColorClass = u.owner === 'player' ? 'hp-bar-player' : 'hp-bar-ai';
+
+        rankEl.innerText = u.rank > 0 ? '⭐'.repeat(u.rank) : '';
+        hpTextEl.innerText = totalCurrentHp;
+        
+        hpBarFillEl.className = `hp-bar-fill ${hpColorClass}`;
+        hpBarFillEl.style.width = `${hpPercent}%`;
+
+        if (u.shieldHp > 0) {
+            shieldBarFillEl.style.display = 'block';
+            shieldBarFillEl.style.width = `${shieldPercent / 2}%`;
+        } else {
+            shieldBarFillEl.style.display = 'none';
+        }
+    });
+
+    [playerBase, aiBase].forEach(b => {
+        const cell = document.getElementById(`cell-${b.x}-${b.y}`);
+        if (cell) {
+            let hpPercent = Math.min(100, Math.max(0, (b.hp / b.maxHp) * 100));
+            let hpColorClass = b.owner === 'player' ? 'hp-bar-player' : 'hp-bar-ai';
+            let animStateClass = b.isDestroyed ? 'base-building-destroy' : '';
+
+            cell.innerHTML = `
+                <div class="base-building-entity ${animStateClass}"></div>
+                <div class="base-hp-wrapper">
+                    <span class="hp-text-label">${Math.round(Math.max(0, b.hp))}</span>
+                    <div class="hp-bar-container">
+                        <div class="hp-bar-fill ${hpColorClass}" style="width:${hpPercent}%;"></div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+function updateUI() {
+    document.getElementById("player-gold").innerText = playerGold;
+}
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    if (!t) return;
+    t.innerText = msg;
+    t.style.display = "block";
+    setTimeout(() => { t.style.display = "none"; }, 2000);
+}
+
+window.addEventListener('resize', resizeGridMap);
+window.addEventListener('orientationchange', () => {
+    setTimeout(resizeGridMap, 150);
+});
+
+window.onload = () => {
+    resizeGridMap();
+    syncUnitsDOM();
+};
+</script>
+</body>
+</html>
