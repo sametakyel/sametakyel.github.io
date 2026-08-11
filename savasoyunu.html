@@ -123,22 +123,30 @@ function createRoom() {
 
     const roomRef = database.ref('rooms/' + roomId);
 
+    // İlk adım: Oda bloğu oluşturuluyor, oyuncu sayısı 0 ile başlatılıyor
     roomRef.set({
       createdAt: Date.now(),
       lastActive: Date.now(),
-      status: 'waiting',
-      player1: { connected: true, lastSeen: Date.now() },
-      player2: { connected: false, lastSeen: 0 }
+      totalPlayers: 0,
+      status: 'waiting'
     }).then(function() {
-      // Bağlantı kopunca odayı tamamen silecek ya da p1 durumunu temizleyecek handler
+      // Host odaya girince oyuncu sayısı 1 yapılır
+      return roomRef.update({
+        totalPlayers: 1,
+        'player1': { connected: true, joinedAt: Date.now() }
+      });
+    }).then(function() {
+      // Bağlantı koptuğunda sunucuda verileri ve sayacı düşür/sil
       roomRef.child('player1').onDisconnect().remove();
+      roomRef.child('totalPlayers').onDisconnect().set(0);
       roomRef.onDisconnect().remove();
 
       updateLobbyStatus('Oda Kuruldu! Kod: <strong style="color:#60a5fa; font-size:20px;">' + roomId + '</strong> (Rakip bekleniyor...)');
 
-      roomRef.child('player2/connected').on('value', function(snapshot) {
-        if (snapshot.exists() && snapshot.val() === true) {
-          roomRef.child('player2/connected').off();
+      // İkinci oyuncunun girmesini dinle
+      roomRef.child('totalPlayers').on('value', function(snapshot) {
+        if (snapshot.exists() && snapshot.val() === 2) {
+          roomRef.child('totalPlayers').off();
           startMultiplayerGame();
         }
       });
@@ -166,44 +174,37 @@ function joinRoom() {
 
       const data = snapshot.val();
       const now = Date.now();
+      let currentTotal = data.totalPlayers || 0;
 
-      const p1Active = data.player1 && data.player1.connected;
-      const p2Active = data.player2 && data.player2.connected;
-
-      // 60 saniyeden uzun süre işlem yapılmamışsa bayat odayı temizle
-      if (data.lastActive && (now - data.lastActive > 60000) && (!p1Active || !p2Active)) {
+      // ZAMAN AŞIMI VE BAYAT VERİ KONTROLÜ
+      // Eğer oda verilere göre dolu görünüyorsa ancak 30 sn'dir aktif değilse temizle
+      if (data.lastActive && (now - data.lastActive > 30000)) {
         roomRef.remove();
-        alert("Bu oda süresi dolduğu için kapatılmış. Lütfen yeni bir oda kurun.");
+        alert("Bu oda pasifleştiği için kapatıldı. Lütfen yeni oda açın.");
         return;
       }
 
-      // Aktif oyuncu sayısını doğrula
-      let activePlayerCount = 0;
-      if (p1Active) activePlayerCount++;
-      if (p2Active) activePlayerCount++;
-
-      if (activePlayerCount >= 2) {
-        alert("Bu oda şu an tam dolu! Katılınamıyor.");
+      // DOLULUK KONTROLÜ
+      if (currentTotal >= 2) {
+        alert("Oda Dolu! (Maksimum 2 oyuncu katılabilir)");
         return;
       }
 
       window.currentRoomId = inputCode;
-      
-      // Boş olan role atama yap
-      if (!p1Active) {
-        window.myRole = 'player1';
-      } else {
-        window.myRole = 'player2';
-      }
+      window.myRole = 'player2';
 
-      const updateData = {
+      // Katılan oyuncu ile totalPlayers kesin olarak 2 yapılıyor
+      const updatePayload = {
+        totalPlayers: 2,
         status: 'playing',
-        lastActive: now
+        lastActive: now,
+        'player2': { connected: true, joinedAt: now }
       };
-      updateData[window.myRole] = { connected: true, lastSeen: now };
 
-      roomRef.update(updateData).then(() => {
-        roomRef.child(window.myRole).onDisconnect().remove();
+      roomRef.update(updatePayload).then(() => {
+        // Çıkışta sayacı düşür ve oyuncuyu sil
+        roomRef.child('player2').onDisconnect().remove();
+        roomRef.child('totalPlayers').onDisconnect().set(1);
         startMultiplayerGame();
       });
     }).catch(function(err) {
@@ -234,10 +235,9 @@ function updateLobbyStatus(msg) {
 
 function listenToDisconnections() {
     const roomRef = database.ref('rooms/' + window.currentRoomId);
-    const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
 
-    roomRef.child(opponentRole + '/connected').on('value', function(snapshot) {
-        if ((!snapshot.exists() || snapshot.val() === false) && window.isMultiplayerActive) {
+    roomRef.child('totalPlayers').on('value', function(snapshot) {
+        if (snapshot.exists() && snapshot.val() < 2 && window.isMultiplayerActive) {
             window.isMultiplayerActive = false;
             if (broadcastInterval) clearInterval(broadcastInterval);
             alert("Rakibin bağlantısı koptu veya oyundan ayrıldı!");
@@ -251,7 +251,7 @@ function broadcastMyState() {
 
     const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
     
-    // Sadece CANLI birimleri filtrele, ölüleri ağa hiç dahil etme
+    // Kesinlikle canlı birimleri filtrele, ölüleri veritabanına taşıma
     const myUnits = units.filter(u => u.owner === myOwnerType && u.hp > 0 && !u.isDestroyed);
 
     const unitsData = myUnits.map(u => ({
@@ -339,7 +339,7 @@ function listenToOpponentData() {
         }
       });
 
-      // Ağda görünmeyen (yok edilen) rakip birimleri hafızadan ve DOM'dan tamamen temizle
+      // Yok olan rakip birimleri diziden ve DOM'dan tamamen kaldır
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
         if (u.owner === opponentOwnerType && (!activeOpponentIds.has(u.id) || u.hp <= 0)) {
@@ -556,7 +556,7 @@ function spawnMyUnit(type) {
 
 function createUnit(type, owner, x, y) {
     const config = UNIT_TYPES[type];
-    
+
     const unit = {
         id: 'u_' + Math.random().toString(36).substring(2, 9),
         type, owner, x, y,
@@ -834,7 +834,7 @@ function gameLoop() {
         }
     });
 
-    // Ölen birimleri sistemden ve yerel hafızadan kesin olarak temizle
+    // Ölen birimleri kesin olarak sistemden ve diziden sil
     for (let i = units.length - 1; i >= 0; i--) {
         if (units[i].hp <= 0 || units[i].isDestroyed) {
             const el = document.getElementById(`unit-${units[i].id}`);
