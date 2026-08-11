@@ -562,6 +562,52 @@ function listenToOpponentData() {
     });
 }
 
+// RAKİP BİRLİĞE VEYA BİNAYA HASAR VERİLDİĞİNDE VERİTABANINA BİREBİR YAZAN KRİTİK METOT
+function applyDamageToOpponentTarget(attacker, targetObj, netDamage) {
+    if (!window.isMultiplayerActive || !window.currentRoomId) return;
+
+    const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
+
+    if (targetObj.owner && !targetObj.type) {
+        // Hedef Ana Bina ise
+        const baseRef = database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/baseHp`);
+        baseRef.transaction(currentHp => {
+            if (currentHp === null) return 0;
+            return Math.max(0, currentHp - netDamage);
+        });
+    } else {
+        // Hedef Rakip Birlik ise
+        targetObj.hp = Math.max(0, targetObj.hp - netDamage); // Yerel anlık tepki için
+
+        const opponentStateRef = database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/units`);
+        opponentStateRef.get().then(snapshot => {
+            if (!snapshot.exists()) return;
+            let netUnits = snapshot.val() || [];
+            let targetIndex = netUnits.findIndex(u => u.id === targetObj.id);
+
+            if (targetIndex !== -1) {
+                let unitData = netUnits[targetIndex];
+                if (unitData.shieldHp && unitData.shieldHp > 0) {
+                    if (unitData.shieldHp >= netDamage) {
+                        unitData.shieldHp -= netDamage;
+                    } else {
+                        let overflow = netDamage - unitData.shieldHp;
+                        unitData.shieldHp = 0;
+                        unitData.hp = Math.max(0, unitData.hp - overflow);
+                    }
+                } else {
+                    unitData.hp = Math.max(0, unitData.hp - netDamage);
+                }
+
+                database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/units/${targetIndex}`).update({
+                    hp: unitData.hp,
+                    shieldHp: unitData.shieldHp || 0
+                });
+            }
+        });
+    }
+}
+
 function resizeGridMap() {
     const isLandscape = window.innerWidth > window.innerHeight;
     const portraitWarning = document.getElementById('portrait-warning');
@@ -1055,6 +1101,7 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// SALDIRI VE DİNANİK HASAR DÖNGÜSÜ (GÜNCELLENDİ)
 setInterval(() => {
     if (!window.isMultiplayerActive) return;
     const now = Date.now();
@@ -1080,21 +1127,9 @@ setInterval(() => {
 
             let baseDamage = attacker.baseDmg;
             let rankDamageBonus = attacker.rank * 0.35;
-            let targetArmorReduction = target.rank * 0.20;
+            let targetArmorReduction = (target.rank || 0) * 0.20;
 
             let netDamage = Math.max(1, (baseDamage * (1 + rankDamageBonus)) * (1 - targetArmorReduction));
-
-            if (target.shieldHp > 0) {
-                if (target.shieldHp >= netDamage) {
-                    target.shieldHp -= netDamage;
-                } else {
-                    let overflowDmg = netDamage - target.shieldHp;
-                    target.shieldHp = 0;
-                    target.hp -= overflowDmg;
-                }
-            } else {
-                target.hp -= netDamage;
-            }
 
             attacker.lastAttack = now;
             attacker.isAttacking = true;
@@ -1102,9 +1137,10 @@ setInterval(() => {
 
             triggerFireAnimation(target.x, target.y);
 
-            if (target.hp <= 0) {
-                target.hp = 0;
-                target.isDestroyed = true;
+            // Veritabanına Hasarı Yaz
+            applyDamageToOpponentTarget(attacker, target, netDamage);
+
+            if (target.hp <= netDamage) {
                 if (attacker.rank < MAX_RANK) {
                     attacker.kills += 1;
                     attacker.rank += 1;
@@ -1119,14 +1155,17 @@ setInterval(() => {
                 }
 
                 let netDamage = attacker.baseDmg * (1 + (attacker.rank * 0.35));
-                enemyBase.hp -= netDamage;
+                
                 attacker.lastAttack = now;
                 attacker.isAttacking = true;
                 setTimeout(() => { attacker.isAttacking = false; }, 400);
 
                 triggerFireAnimation(enemyBase.x, enemyBase.y);
 
-                if (enemyBase.hp <= 0 && !enemyBase.isDestroyed) {
+                // Ana Bina Hasarını Veritabanına Yaz
+                applyDamageToOpponentTarget(attacker, enemyBase, netDamage);
+
+                if (enemyBase.hp <= netDamage && !enemyBase.isDestroyed) {
                     enemyBase.hp = 0;
                     enemyBase.isDestroyed = true;
                     syncUnitsDOM();
