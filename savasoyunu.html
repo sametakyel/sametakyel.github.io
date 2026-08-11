@@ -57,7 +57,8 @@
         z-index: 3;
         display: block;
       }
-      /* LOBİ MOBİL HİZALAMA VE MOBİL DOKUNMA REVİZYONU */
+      
+      /* LOBİ SOLA HİZALAMA (%5 MARGIN LEFTS VE %50 TRANSPARAN) */
       .lobby-ui-overlay {
         position: absolute;
         top: 0;
@@ -68,14 +69,14 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start; /* Sola dayama */
         padding: 20px 0;
         box-sizing: border-box;
       }
       .lobby-card {
-        background: rgba(15, 23, 42, 0.88);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: rgba(15, 23, 42, 0.50) !important; /* %50 Transparan Arka Plan */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
         padding: 20px 16px;
@@ -84,9 +85,10 @@
         gap: 10px;
         width: 288px;
         max-width: 288px;
+        margin-left: 5%; /* Soldan %5 margin */
         max-height: calc(100vh - 40px);
         overflow-y: auto;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         box-sizing: border-box;
       }
       .lobby-card h1 {
@@ -145,7 +147,7 @@
         padding: 8px 12px;
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(30, 41, 59, 0.8);
+        background: rgba(30, 41, 59, 0.6);
         color: white;
         font-weight: 600;
         font-size: 13px;
@@ -160,7 +162,7 @@
         padding: 6px;
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(15, 23, 42, 0.9);
+        background: rgba(15, 23, 42, 0.6);
         color: #f8fafc;
         font-size: 12px;
         outline: none;
@@ -440,7 +442,7 @@ function startMultiplayerGame() {
     document.getElementById('role-label').innerText = 'TAKIM: ' + roleText;
 
     listenToOpponentData();
-    listenToMyUnitsData();
+    listenToCombatEvents();
     listenToDisconnections();
 
     if (broadcastInterval) clearInterval(broadcastInterval);
@@ -467,7 +469,7 @@ function listenToDisconnections() {
     });
 }
 
-// KENDİ BİRLİKLERİMİZİN VERİSİNİ YAYINLARKEN HP YERİNE SADECE KONUM VE DURUM BİLGİSİ BASILIYOR
+// BİRLİK SAHİBİ SADECE KONUM VE DURUM BİLGİSİ YAYINLAR (CAN ASLA YAYINLANMAZ VEYA EZİLMEZ)
 function broadcastMyState() {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
@@ -479,10 +481,8 @@ function broadcastMyState() {
         type: u.type,
         x: Math.round(u.x * 100) / 100,
         y: Math.round(u.y * 100) / 100,
-        hp: Math.max(0, u.hp),
-        maxHp: u.maxHp || u.hp,
-        shieldHp: Math.max(0, u.shieldHp || 0),
-        maxShieldHp: u.maxShieldHp || 0,
+        hp: Math.round(u.hp), // Sadece rakibe gösterim için HP (Senkronizasyon amaçlı)
+        shieldHp: Math.round(u.shieldHp || 0),
         rank: u.rank || 0,
         directionRow: u.directionRow || 0,
         isFlipped: !!u.isFlipped,
@@ -490,71 +490,79 @@ function broadcastMyState() {
         isMoving: !!u.isMoving
     }));
 
-    const myBase = window.myRole === 'player1' ? playerBase : aiBase;
-
     database.ref('rooms/' + window.currentRoomId + '/gameState/' + window.myRole).update({
       units: unitsData,
       updatedAt: Date.now()
     });
 }
 
-// RAKİBİN BİZE VERDİĞİ HASARI VE CAN DÜŞÜŞLERİNİ ANLIK DİNLEME (HASARIN BİZİM BROADCAST TARAFINDAN EZİLMESİNİ ENGELLER)
-function listenToMyUnitsData() {
-    const myRolePath = window.myRole;
-    const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
+// RAKİBİN BİZİM BİRLİKLERİMİZE VEYA BİNAMIZA VERDİĞİ HASAR OLAYLARINI (COMBAT EVENTS) DİNLER
+function listenToCombatEvents() {
+    const eventsRef = database.ref('rooms/' + window.currentRoomId + '/combatEvents');
 
-    database.ref('rooms/' + window.currentRoomId + '/gameState/' + myRolePath).on('value', function(snapshot) {
-        if (!snapshot.exists()) return;
-        const data = snapshot.val();
-        
-        if (data.baseHp !== undefined) {
-            if (window.myRole === 'player1') {
-                playerBase.hp = data.baseHp;
-                if (playerBase.hp <= 0) playerBase.isDestroyed = true;
-            } else {
-                aiBase.hp = data.baseHp;
-                if (aiBase.hp <= 0) aiBase.isDestroyed = true;
+    eventsRef.on('child_added', snapshot => {
+        const event = snapshot.val();
+        if (!event || event.targetRole !== window.myRole) return;
+
+        // Bize yöneltilen saldırı olayı var
+        if (event.isBaseTarget) {
+            // Ana Binaya Hasar
+            const myBaseObj = window.myRole === 'player1' ? playerBase : aiBase;
+            myBaseObj.hp = Math.max(0, myBaseObj.hp - event.damage);
+            if (myBaseObj.hp <= 0 && !myBaseObj.isDestroyed) {
+                myBaseObj.isDestroyed = true;
+                syncUnitsDOM();
+                setTimeout(() => {
+                    alert("ANA BİNANIZ YOK EDİLDİ, KAYBETTİNİZ!");
+                    location.reload();
+                }, 500);
+            }
+        } else {
+            // Bizim Birliğimize Hasar
+            const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
+            let localUnit = units.find(u => u.id === event.targetUnitId && u.owner === myOwnerType);
+            if (localUnit && !localUnit.isDestroyed) {
+                let damage = event.damage;
+                if (localUnit.shieldHp > 0) {
+                    if (localUnit.shieldHp >= damage) {
+                        localUnit.shieldHp -= damage;
+                        damage = 0;
+                    } else {
+                        damage -= localUnit.shieldHp;
+                        localUnit.shieldHp = 0;
+                    }
+                }
+
+                if (damage > 0) {
+                    localUnit.hp = Math.max(0, localUnit.hp - damage);
+                }
+
+                // Canı sıfırlanan birim yerelde direkt silinir
+                if (localUnit.hp <= 0) {
+                    localUnit.isDestroyed = true;
+                    const el = document.getElementById(`unit-${localUnit.id}`);
+                    if (el) el.remove();
+                    units = units.filter(u => u.id !== localUnit.id);
+                }
             }
         }
 
-        const networkUnits = data.units || [];
-        networkUnits.forEach(netUnit => {
-            let localUnit = units.find(u => u.id === netUnit.id && u.owner === myOwnerType);
-            if (localUnit) {
-                // Rakip bize saldırdıysa ve Firebase'de canımız düştüyse yerel canımızı güncelle
-                if (netUnit.hp < localUnit.hp) {
-                    localUnit.hp = netUnit.hp;
-                }
-                if (netUnit.shieldHp !== undefined) {
-                    localUnit.shieldHp = netUnit.shieldHp;
-                }
-                if (localUnit.hp <= 0) {
-                    localUnit.isDestroyed = true;
-                }
-            }
-        });
+        // İşlenen Olayı Firebase'den Temizle
+        snapshot.ref.remove();
+        syncUnitsDOM();
     });
 }
 
+// RAKİBİN HAREKETLERİNİ DİNLER (CAN BİLGİSİNİ KENDİSİ DÜŞÜRMEDİĞİ SÜRECE EZMEZ)
 function listenToOpponentData() {
     const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
     const opponentOwnerType = window.myRole === 'player1' ? 'ai' : 'player';
 
-    database.ref('rooms/' + window.currentRoomId + '/gameState/' + opponentRole).on('value', function(snapshot) {
+    database.ref('rooms/' + window.currentRoomId + '/gameState/' + opponentRole).on('value', snapshot => {
       if (!snapshot.exists()) return;
 
       const data = snapshot.val();
       const networkUnits = data.units || [];
-      const opponentBaseHp = data.baseHp;
-
-      if (window.myRole === 'player1') {
-        if (opponentBaseHp !== undefined) aiBase.hp = opponentBaseHp;
-        if (aiBase.hp <= 0) aiBase.isDestroyed = true;
-      } else {
-        if (opponentBaseHp !== undefined) playerBase.hp = opponentBaseHp;
-        if (playerBase.hp <= 0) playerBase.isDestroyed = true;
-      }
-
       const activeOpponentIds = new Set();
 
       networkUnits.forEach(netUnit => {
@@ -566,16 +574,14 @@ function listenToOpponentData() {
         if (localUnit) {
           localUnit.x = netUnit.x;
           localUnit.y = netUnit.y;
-          localUnit.hp = netUnit.hp;
-          localUnit.maxHp = netUnit.maxHp;
+          // Can verisini rakip taraf kendi onayladıysa eşitle
+          if (netUnit.hp < localUnit.hp) localUnit.hp = netUnit.hp;
           localUnit.shieldHp = netUnit.shieldHp;
-          localUnit.maxShieldHp = netUnit.maxShieldHp;
           localUnit.rank = netUnit.rank;
           localUnit.directionRow = netUnit.directionRow;
           localUnit.isFlipped = netUnit.isFlipped;
           localUnit.isAttacking = netUnit.isAttacking;
           localUnit.isMoving = netUnit.isMoving;
-          localUnit.isDestroyed = false;
         } else {
           units.push({
             id: netUnit.id,
@@ -584,10 +590,10 @@ function listenToOpponentData() {
             x: netUnit.x,
             y: netUnit.y,
             hp: netUnit.hp,
-            maxHp: netUnit.maxHp,
+            maxHp: UNIT_TYPES[netUnit.type].hp,
             baseHp: UNIT_TYPES[netUnit.type].hp,
-            shieldHp: netUnit.shieldHp,
-            maxShieldHp: netUnit.maxShieldHp,
+            shieldHp: netUnit.shieldHp || 0,
+            maxShieldHp: 0,
             rank: netUnit.rank,
             directionRow: netUnit.directionRow,
             isFlipped: netUnit.isFlipped,
@@ -599,9 +605,10 @@ function listenToOpponentData() {
         }
       });
 
+      // Sahada artık bulunmayan rakip birlikleri temizle
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
-        if (u.owner === opponentOwnerType && (!activeOpponentIds.has(u.id) || u.hp <= 0)) {
+        if (u.owner === opponentOwnerType && !activeOpponentIds.has(u.id)) {
             const el = document.getElementById('unit-' + u.id);
             if (el) el.remove();
             units.splice(i, 1);
@@ -612,51 +619,27 @@ function listenToOpponentData() {
     });
 }
 
-// RAKİP BİRLİĞE VEYA BİNAYA HASAR VERİLDİĞİNDE VERİTABANINA BİREBİR YAZAN ATOMİK METOT
-function applyDamageToOpponentTarget(attacker, targetObj, netDamage) {
+// HASAR VERME OLAYINI ATOMİK OLARAK FİREBASE'E BASAN EVENT METODU (EZME YAPMAZ)
+function emitDamageEvent(targetObj, netDamage) {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
-    const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
+    const targetRole = window.myRole === 'player1' ? 'player2' : 'player1';
+    const isBase = targetObj.owner && !targetObj.type;
 
-    if (targetObj.owner && !targetObj.type) {
-        // Hedef Ana Bina ise
-        const baseRef = database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/baseHp`);
-        baseRef.transaction(currentHp => {
-            if (currentHp === null) return 0;
-            return Math.max(0, currentHp - netDamage);
-        });
-    } else {
-        // Hedef Rakip Birlik ise
-        targetObj.hp = Math.max(0, targetObj.hp - netDamage); // Yerel anlık tepki için
-        if (targetObj.hp <= 0) targetObj.isDestroyed = true;
-
-        const opponentStateRef = database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/units`);
-        opponentStateRef.transaction(netUnits => {
-            if (!netUnits) return netUnits;
-
-            let targetIndex = netUnits.findIndex(u => u.id === targetObj.id);
-            if (targetIndex !== -1) {
-                let unitData = netUnits[targetIndex];
-                if (unitData.shieldHp && unitData.shieldHp > 0) {
-                    if (unitData.shieldHp >= netDamage) {
-                        unitData.shieldHp -= netDamage;
-                    } else {
-                        let overflow = netDamage - unitData.shieldHp;
-                        unitData.shieldHp = 0;
-                        unitData.hp = Math.max(0, unitData.hp - overflow);
-                    }
-                } else {
-                    unitData.hp = Math.max(0, unitData.hp - netDamage);
-                }
-
-                if (unitData.hp <= 0) {
-                    // Can bittiyse diziden tamamen kaldır
-                    netUnits.splice(targetIndex, 1);
-                }
-            }
-            return netUnits;
-        });
+    // Hasarı yerel görselde hızlı hissettirmek için anında düşür
+    targetObj.hp = Math.max(0, targetObj.hp - netDamage);
+    if (targetObj.hp <= 0) {
+        targetObj.isDestroyed = true;
     }
+
+    // Hasar olayını veritabanına fırlat
+    database.ref('rooms/' + window.currentRoomId + '/combatEvents').push({
+        targetRole: targetRole,
+        isBaseTarget: isBase,
+        targetUnitId: targetObj.id || null,
+        damage: netDamage,
+        timestamp: Date.now()
+    });
 }
 
 function resizeGridMap() {
@@ -1140,7 +1123,7 @@ function gameLoop() {
         }
     });
 
-    // ÖLÜ BİRLİKLERİ TEMİZLE
+    // CANI BİTEN BİRLİKLERİ TEMİZLE
     for (let i = units.length - 1; i >= 0; i--) {
         if (units[i].hp <= 0 || units[i].isDestroyed) {
             const el = document.getElementById(`unit-${units[i].id}`);
@@ -1153,7 +1136,7 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// SALDIRI VE CAN DÜŞME DÖNGÜSÜ
+// SALDIRI DÖNGÜSÜ (EVENT TABANLI EVENT-DRIVEN COMBAT)
 setInterval(() => {
     if (!window.isMultiplayerActive) return;
     const now = Date.now();
@@ -1189,8 +1172,8 @@ setInterval(() => {
 
             triggerFireAnimation(target.x, target.y);
 
-            // Veritabanına Atomik Olarak Hasarı Yaz
-            applyDamageToOpponentTarget(attacker, target, netDamage);
+            // HASAR OLAYINI FİREBASE'E FIRLAT
+            emitDamageEvent(target, netDamage);
 
             if (target.hp <= 0) {
                 if (attacker.rank < MAX_RANK) {
@@ -1214,8 +1197,8 @@ setInterval(() => {
 
                 triggerFireAnimation(enemyBase.x, enemyBase.y);
 
-                // Ana Bina Hasarını Veritabanına Yaz
-                applyDamageToOpponentTarget(attacker, enemyBase, netDamage);
+                // ANA BİNA HASAR OLAYINI FIRLAT
+                emitDamageEvent(enemyBase, netDamage);
 
                 if (enemyBase.hp <= 0 && !enemyBase.isDestroyed) {
                     enemyBase.hp = 0;
