@@ -20,7 +20,7 @@
   </button>
 
   <div style="display: flex; gap: 8px; margin-top: 10px;">
-    <input type="text" id="room-code-input" placeholder="Oda Kodu Girin" style="padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; text-align: center; font-weight: bold; font-size: 16px; text-transform: uppercase;">
+    <input type="number" id="room-code-input" placeholder="5 Haneli Oda Kodu" style="padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; text-align: center; font-weight: bold; font-size: 16px;">
     <button onclick="joinRoom()" style="padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
       🚪 Odaya Katıl
     </button>
@@ -73,7 +73,6 @@
 </div>
 
 <script>
-// 1. HER AÇILIŞTA ÖN BELLEK VE ÇEREZ TEMİZLİĞİ
 function clearAllAppCache() {
     try {
         localStorage.clear();
@@ -103,7 +102,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Firebase yerel disk kalıcılığını (Persistence) kapatıyoruz. Her veri doğrudan sunucudan alınır.
 try {
     database.goOffline();
     database.goOnline();
@@ -138,22 +136,25 @@ const UNIT_TYPES = {
     plane:   { category: 'plane',   cost: 30, hp: 200, dmg: 45,  interval: 3600, moveSpeed: 240, attackRange: 1, maxLimit: 3,  label: 'Uçak' }
 };
 
+// 5 Haneli Sayısal Oda Kodu Üreticisi
+function generateNumericRoomId() {
+    return Math.floor(10000 + Math.random() * 90000).toString();
+}
+
 function createRoom() {
     clearAllAppCache();
-    const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const roomId = generateNumericRoomId();
     window.currentRoomId = roomId;
     window.myRole = 'player1';
 
     const roomRef = database.ref('rooms/' + roomId);
 
-    // KESİN AĞ SIFIRLAMASI: Oda ilk kurulduğunda veri bloğu tamamen silinir ve totalPlayers kesin olarak 0 yapılır
     roomRef.set({
       createdAt: Date.now(),
       lastActive: Date.now(),
       totalPlayers: 0,
       status: 'waiting'
     }).then(function() {
-      // Host odaya girdiğinde atomik olarak oyuncu sayısını tam olarak +1 artırır (0 -> 1)
       return roomRef.child('totalPlayers').transaction(function(currentCount) {
         return (currentCount || 0) + 1;
       });
@@ -164,14 +165,12 @@ function createRoom() {
 
       roomRef.child('player1').set({ connected: true, joinedAt: Date.now() });
 
-      // Oyuncu ayrılırsa ağ bazında sıfırlama ve bağlantı koparma hook'ları
       roomRef.child('player1').onDisconnect().remove();
       roomRef.child('totalPlayers').onDisconnect().set(0);
       roomRef.onDisconnect().remove();
 
-      updateLobbyStatus('Oda Kuruldu! Kod: <strong style="color:#60a5fa; font-size:20px;">' + roomId + '</strong> (2. Oyuncu Bekleniyor...)');
+      updateLobbyStatus('Oda Kuruldu! Kod: <strong style="color:#60a5fa; font-size:22px;">' + roomId + '</strong> (2. Oyuncu Bekleniyor...)');
 
-      // 2. Oyuncunun (Ağdan gelen +1 işlemi ile) girmesini dinle
       roomRef.child('totalPlayers').on('value', function(snapshot) {
         if (snapshot.exists() && snapshot.val() === 2) {
           roomRef.child('totalPlayers').off();
@@ -186,24 +185,23 @@ function createRoom() {
 function joinRoom() {
     clearAllAppCache();
     const inputEl = document.getElementById('room-code-input');
-    const inputCode = inputEl ? inputEl.value.trim().toUpperCase() : '';
+    const inputCode = inputEl ? inputEl.value.trim() : '';
 
-    if (!inputCode) {
-      alert("Lütfen geçerli bir oda kodu girin!");
+    if (!inputCode || inputCode.length !== 5 || isNaN(inputCode)) {
+      alert("Lütfen geçerli 5 haneli sayısal bir oda kodu girin!");
       return;
     }
 
     const roomRef = database.ref('rooms/' + inputCode);
 
-    // Sunucu tarafında atomik transaction yürütülür (Önbellek bypass edilir)
     roomRef.child('totalPlayers').transaction(function(currentTotal) {
       if (currentTotal === null) {
-        return 0; // Oda henüz var değilse işlemi durdurmak için
+        return 0;
       }
       if (currentTotal >= 2) {
-        return; // İşlem iptal edilir (Oda Dolu)
+        return; 
       }
-      return currentTotal + 1; // Sadece 1 artırılır
+      return currentTotal + 1;
     }, function(error, committed, snapshot) {
       if (error) {
         alert("Bağlantı hatası: " + error.message);
@@ -215,7 +213,6 @@ function joinRoom() {
         return;
       }
 
-      // Bağlantı başarılı ise oyuncu kurulur
       window.currentRoomId = inputCode;
       window.myRole = 'player2';
 
@@ -357,6 +354,7 @@ function listenToOpponentData() {
         }
       });
 
+      // Bellek Temizliği (Garbage Collector) - Silinen rakip birliklerini kaldırır
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
         if (u.owner === opponentOwnerType && (!activeOpponentIds.has(u.id) || u.hp <= 0)) {
@@ -851,6 +849,7 @@ function gameLoop() {
         }
     });
 
+    // Bellek ve DOM Temizliği
     for (let i = units.length - 1; i >= 0; i--) {
         if (units[i].hp <= 0 || units[i].isDestroyed) {
             const el = document.getElementById(`unit-${units[i].id}`);
@@ -1102,10 +1101,12 @@ function syncUnitsDOM() {
         
         hpBarFillEl.className = `hp-bar-fill ${hpColorClass}`;
         hpBarFillEl.style.width = `${hpPercent}%`;
+        hpBarFillEl.style.transition = "width 0.2s ease-out";
 
         if (u.shieldHp > 0) {
             shieldBarFillEl.style.display = 'block';
             shieldBarFillEl.style.width = `${shieldPercent / 2}%`;
+            shieldBarFillEl.style.transition = "width 0.2s ease-out";
         } else {
             shieldBarFillEl.style.display = 'none';
         }
@@ -1123,7 +1124,7 @@ function syncUnitsDOM() {
                 <div class="base-hp-wrapper">
                     <span class="hp-text-label">${Math.round(Math.max(0, b.hp))}</span>
                     <div class="hp-bar-container">
-                        <div class="hp-bar-fill ${hpColorClass}" style="width:${hpPercent}%;"></div>
+                        <div class="hp-bar-fill ${hpColorClass}" style="width:${hpPercent}%; transition: width 0.2s ease-out;"></div>
                     </div>
                 </div>
             `;
