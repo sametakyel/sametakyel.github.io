@@ -72,21 +72,21 @@
         box-sizing: border-box;
       }
       .lobby-card {
-        background: rgba(15, 23, 42, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
-        padding: 30px;
+        padding: 24px;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        max-width: 340px;
+        gap: 12px;
+        max-width: 360px;
         width: 90%;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       }
       .lobby-card h1 {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 800;
         margin: 0;
         color: #ffffff;
@@ -99,12 +99,12 @@
       }
       .lobby-btn {
         width: 100%;
-        padding: 14px 20px;
+        padding: 12px 18px;
         border: none;
         border-radius: 10px;
         font-weight: 700;
         cursor: pointer;
-        font-size: 15px;
+        font-size: 14px;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
@@ -130,19 +130,34 @@
       }
       .room-input {
         width: 100%;
-        padding: 12px 14px;
-        border-radius: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: rgba(30, 41, 59, 0.8);
         color: white;
-        text-align: center;
-        font-weight: 700;
-        font-size: 16px;
+        font-weight: 600;
+        font-size: 14px;
         box-sizing: border-box;
         outline: none;
       }
       .room-input:focus {
         border-color: #3b82f6;
+      }
+      .room-select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(15, 23, 42, 0.9);
+        color: #f8fafc;
+        font-size: 13px;
+        outline: none;
+        max-height: 120px;
+      }
+      .room-select option {
+        background: #0f172a;
+        color: white;
+        padding: 6px;
       }
       @keyframes softFloatImg {
         0% { transform: translateY(0px) scale(1); }
@@ -163,21 +178,27 @@
 
   <div class="lobby-ui-overlay">
     <div class="lobby-card">
-      <h1>Çok Oyunculu Lobi</h1>
-      <p class="subtitle">Bir oda kurun ya da arkadaşınızın oda kodunu girin.</p>
+      <h1>Lobi & Oda Listesi</h1>
+      <p class="subtitle">Adınızı yazın, oda oluşturun veya listeden seçip katılın.</p>
+
+      <input type="text" id="player-name-input" placeholder="Oyuncu Adınız..." class="room-input" maxlength="15">
 
       <button onclick="createRoom()" class="lobby-btn btn-create">
-        ➕ Yeni Oda Kur (Host)
+        ➕ Yeni Oda Oluştur
       </button>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-        <input type="number" id="room-code-input" placeholder="5 Haneli Oda Kodu" class="room-input">
-        <button onclick="joinRoom()" class="lobby-btn btn-join">
-          🚪 Odaya Katıl
-        </button>
-      </div>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0;">
 
-      <p id="lobby-status" style="color: #f59e0b; font-size: 13px; margin: 0; min-height: 20px; font-weight: bold; text-align: center;"></p>
+      <label style="color: #cbd5e1; font-size: 12px; font-weight: bold;">Mevcut Odalar (1/2):</label>
+      <select id="room-list-select" size="4" class="room-select">
+        <option value="" disabled style="text-align: center; color: #94a3b8;">Aranıyor...</option>
+      </select>
+
+      <button onclick="joinSelectedRoom()" class="lobby-btn btn-join">
+        🚪 Odaya Katıl
+      </button>
+
+      <p id="lobby-status" style="color: #f59e0b; font-size: 12px; margin: 0; min-height: 18px; font-weight: bold; text-align: center;"></p>
     </div>
   </div>
 </div>
@@ -252,6 +273,7 @@ const database = firebase.database();
 
 window.currentRoomId = null;
 window.myRole = null;
+window.playerName = "";
 window.isMultiplayerActive = false;
 let broadcastInterval = null;
 
@@ -279,82 +301,123 @@ const UNIT_TYPES = {
     plane:   { category: 'plane',   cost: 30, hp: 200, dmg: 45,  interval: 3600, moveSpeed: 240, attackRange: 1, maxLimit: 3,  label: 'Uçak' }
 };
 
-function generateNumericRoomId() {
-    return Math.floor(10000 + Math.random() * 90000).toString();
+function initLobbyRoomListener() {
+    const roomsRef = database.ref('rooms');
+    
+    roomsRef.on('value', snapshot => {
+        const selectEl = document.getElementById('room-list-select');
+        if (!selectEl) return;
+        
+        selectEl.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+            selectEl.innerHTML = '<option value="" disabled style="text-align:center; color:#94a3b8;">Açık oda yok</option>';
+            return;
+        }
+
+        let availableCount = 0;
+        snapshot.forEach(childSnap => {
+            const roomId = childSnap.key;
+            const room = childSnap.val();
+
+            if (room.status === 'waiting' && room.totalPlayers === 1) {
+                availableCount++;
+                const opt = document.createElement('option');
+                opt.value = roomId;
+                opt.innerText = `🎮 ${room.hostName || 'Oyuncu'} (1/2) - Bekliyor`;
+                selectEl.appendChild(opt);
+            }
+        });
+
+        if (availableCount === 0) {
+            selectEl.innerHTML = '<option value="" disabled style="text-align:center; color:#94a3b8;">Açık oda yok</option>';
+        }
+    });
+}
+
+function getPlayerName() {
+    const input = document.getElementById('player-name-input');
+    let name = input ? input.value.trim() : '';
+    if (!name) {
+        alert("Lütfen önce Oyuncu Adınızı girin!");
+        return null;
+    }
+    return name;
 }
 
 function createRoom() {
-    clearAllAppCache();
-    const roomId = generateNumericRoomId();
+    const name = getPlayerName();
+    if (!name) return;
+
+    window.playerName = name;
+    const roomId = 'room_' + Math.floor(10000 + Math.random() * 90000);
     window.currentRoomId = roomId;
     window.myRole = 'player1';
 
     const roomRef = database.ref('rooms/' + roomId);
 
     roomRef.set({
+      hostName: name,
       createdAt: Date.now(),
-      lastActive: Date.now(),
       totalPlayers: 1,
       status: 'waiting',
-      player1: { connected: true, joinedAt: Date.now() }
+      player1: { name: name, connected: true }
     }).then(() => {
-      roomRef.child('player1').onDisconnect().remove();
-      roomRef.child('totalPlayers').onDisconnect().set(0);
       roomRef.onDisconnect().remove();
 
-      updateLobbyStatus('Oda Kuruldu! Kod: <strong style="color:#60a5fa; font-size:18px;">' + roomId + '</strong><br>(2. Oyuncu Bekleniyor...)');
+      updateLobbyStatus(`Oda Açıldı! (${name})<br>2. Oyuncu Bekleniyor...`);
 
-      roomRef.child('totalPlayers').on('value', function(snapshot) {
-        if (snapshot.exists() && snapshot.val() === 2) {
-          roomRef.child('totalPlayers').off();
+      roomRef.child('status').on('value', function(snapshot) {
+        if (snapshot.exists() && snapshot.val() === 'playing') {
+          roomRef.child('status').off();
           startMultiplayerGame();
         }
       });
-    }).catch(function(err) {
-      alert("Oda oluşturulamadı: " + err.message);
+    }).catch(err => {
+      alert("Oda oluşturma hatası: " + err.message);
     });
 }
 
-function joinRoom() {
-    clearAllAppCache();
-    const inputEl = document.getElementById('room-code-input');
-    const inputCode = inputEl ? inputEl.value.trim() : '';
+function joinSelectedRoom() {
+    const name = getPlayerName();
+    if (!name) return;
 
-    if (!inputCode || inputCode.length !== 5 || isNaN(inputCode)) {
-      alert("Lütfen geçerli 5 haneli sayısal bir oda kodu girin!");
-      return;
+    const selectEl = document.getElementById('room-list-select');
+    const selectedRoomId = selectEl ? selectEl.value : null;
+
+    if (!selectedRoomId) {
+        alert("Lütfen katılan bir oda seçin!");
+        return;
     }
 
-    const roomRef = database.ref('rooms/' + inputCode);
+    window.playerName = name;
+    window.currentRoomId = selectedRoomId;
+    window.myRole = 'player2';
+
+    const roomRef = database.ref('rooms/' + selectedRoomId);
 
     roomRef.get().then(snapshot => {
       if (!snapshot.exists()) {
-        alert("Oda bulunamadı!");
+        alert("Oda artık mevcut değil!");
         return;
       }
       
       const data = snapshot.val();
-      if (data.totalPlayers >= 2) {
-        alert("Oda Dolu! (Maksimum 2 oyuncu)");
+      if (data.totalPlayers >= 2 || data.status !== 'waiting') {
+        alert("Bu oda doldu veya oyuna başladı!");
         return;
       }
 
-      window.currentRoomId = inputCode;
-      window.myRole = 'player2';
-
-      const now = Date.now();
       roomRef.update({
         status: 'playing',
         totalPlayers: 2,
-        lastActive: now,
-        'player2': { connected: true, joinedAt: now }
+        'player2': { name: name, connected: true }
       }).then(() => {
         roomRef.child('player2').onDisconnect().remove();
-        roomRef.child('totalPlayers').onDisconnect().set(1);
         startMultiplayerGame();
       });
     }).catch(err => {
-      alert("Bağlantı hatası: " + err.message);
+      alert("Odaya katılma hatası: " + err.message);
     });
 }
 
@@ -362,8 +425,8 @@ function startMultiplayerGame() {
     window.isMultiplayerActive = true;
     document.getElementById('lobby-container').style.display = 'none';
 
-    const roleText = window.myRole === 'player1' ? 'Mavi Takım (Sol)' : 'Kırmızı Takım (Sağ)';
-    document.getElementById('role-label').innerText = 'ROL: ' + roleText;
+    const roleText = window.myRole === 'player1' ? `Mavi (${window.playerName})` : `Kırmızı (${window.playerName})`;
+    document.getElementById('role-label').innerText = 'TAKIM: ' + roleText;
 
     listenToOpponentData();
     listenToDisconnections();
@@ -671,7 +734,7 @@ function findEmptySpawnTileAroundBase(base, type) {
 
 function spawnMyUnit(type) {
     if (!window.isMultiplayerActive) {
-        showToast("Lütfen önce multiplayer bir odaya katılın!");
+        showToast("Lütfen önce bir odaya katılın!");
         return;
     }
 
@@ -1368,6 +1431,7 @@ window.onload = () => {
     resizeCanvas();
     drawDots();
     resizeGridMap();
+    initLobbyRoomListener();
     syncUnitsDOM();
 };
 </script>
