@@ -157,16 +157,10 @@
 <body>
 
 <div id="lobby-container" class="game-background-container">
-  <!-- Katman 1: object-fit: cover ile esnemeyen görsel -->
   <img src="https://sametakyel.github.io/arkaplanoyun.png" alt="Oyun Arka Planı" class="bg-image">
-
-  <!-- Katman 2: Belirgin Beyaz - Siyah (to right) Animasyonlu Gradient -->
   <div class="gradient-overlay"></div>
-
-  <!-- Katman 3: Nokta Matrisi Canvas -->
   <canvas id="dotCanvas"></canvas>
 
-  <!-- Katman 4: Sol Tarafta Hizalanmış Lobi UI -->
   <div class="lobby-ui-overlay">
     <div class="lobby-card">
       <h1>Çok Oyunculu Lobi</h1>
@@ -236,11 +230,6 @@ function clearAllAppCache() {
     try {
         localStorage.clear();
         sessionStorage.clear();
-        if (window.indexedDB) {
-            indexedDB.databases().then(dbs => {
-                dbs.forEach(db => indexedDB.deleteDatabase(db.name));
-            }).catch(() => {});
-        }
     } catch (e) {
         console.warn("Önbellek temizlenirken hata:", e);
     }
@@ -260,11 +249,6 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-
-try {
-    database.goOffline();
-    database.goOnline();
-} catch(e){}
 
 window.currentRoomId = null;
 window.myRole = null;
@@ -295,7 +279,6 @@ const UNIT_TYPES = {
     plane:   { category: 'plane',   cost: 30, hp: 200, dmg: 45,  interval: 3600, moveSpeed: 240, attackRange: 1, maxLimit: 3,  label: 'Uçak' }
 };
 
-// 5 Haneli Sayısal Oda Kodu Üreticisi
 function generateNumericRoomId() {
     return Math.floor(10000 + Math.random() * 90000).toString();
 }
@@ -311,19 +294,10 @@ function createRoom() {
     roomRef.set({
       createdAt: Date.now(),
       lastActive: Date.now(),
-      totalPlayers: 0,
-      status: 'waiting'
-    }).then(function() {
-      return roomRef.child('totalPlayers').transaction(function(currentCount) {
-        return (currentCount || 0) + 1;
-      });
-    }).then(function(transactionResult) {
-      if (!transactionResult.committed) {
-        throw new Error("Oda başlatılamadı.");
-      }
-
-      roomRef.child('player1').set({ connected: true, joinedAt: Date.now() });
-
+      totalPlayers: 1,
+      status: 'waiting',
+      player1: { connected: true, joinedAt: Date.now() }
+    }).then(() => {
       roomRef.child('player1').onDisconnect().remove();
       roomRef.child('totalPlayers').onDisconnect().set(0);
       roomRef.onDisconnect().remove();
@@ -353,22 +327,15 @@ function joinRoom() {
 
     const roomRef = database.ref('rooms/' + inputCode);
 
-    roomRef.child('totalPlayers').transaction(function(currentTotal) {
-      if (currentTotal === null) {
-        return 0;
-      }
-      if (currentTotal >= 2) {
-        return; 
-      }
-      return currentTotal + 1;
-    }, function(error, committed, snapshot) {
-      if (error) {
-        alert("Bağlantı hatası: " + error.message);
+    roomRef.get().then(snapshot => {
+      if (!snapshot.exists()) {
+        alert("Oda bulunamadı!");
         return;
       }
       
-      if (!committed || !snapshot.exists()) {
-        alert("Oda bulunamadı veya Oda Dolu! (Maksimum 2 oyuncu)");
+      const data = snapshot.val();
+      if (data.totalPlayers >= 2) {
+        alert("Oda Dolu! (Maksimum 2 oyuncu)");
         return;
       }
 
@@ -378,13 +345,16 @@ function joinRoom() {
       const now = Date.now();
       roomRef.update({
         status: 'playing',
+        totalPlayers: 2,
         lastActive: now,
         'player2': { connected: true, joinedAt: now }
       }).then(() => {
         roomRef.child('player2').onDisconnect().remove();
-        roomRef.child('totalPlayers').onDisconnect().transaction(count => Math.max(0, (count || 1) - 1));
+        roomRef.child('totalPlayers').onDisconnect().set(1);
         startMultiplayerGame();
       });
+    }).catch(err => {
+      alert("Bağlantı hatası: " + err.message);
     });
 }
 
@@ -399,7 +369,7 @@ function startMultiplayerGame() {
     listenToDisconnections();
 
     if (broadcastInterval) clearInterval(broadcastInterval);
-    broadcastInterval = setInterval(broadcastMyState, 120);
+    broadcastInterval = setInterval(broadcastMyState, 100);
 
     requestAnimationFrame(gameLoop);
 }
@@ -426,7 +396,7 @@ function broadcastMyState() {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
     const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
-    const myUnits = units.filter(u => u.owner === myOwnerType && u.hp > 0 && !u.isDestroyed);
+    const myUnits = units.filter(u => u.owner === myOwnerType && !u.isDestroyed);
 
     const unitsData = myUnits.map(u => ({
         id: u.id,
@@ -436,6 +406,7 @@ function broadcastMyState() {
         hp: Math.max(0, u.hp),
         maxHp: u.maxHp || u.hp,
         shieldHp: Math.max(0, u.shieldHp || 0),
+        maxShieldHp: u.maxShieldHp || 0,
         rank: u.rank || 0,
         directionRow: u.directionRow || 0,
         isFlipped: !!u.isFlipped,
@@ -450,8 +421,6 @@ function broadcastMyState() {
       baseHp: Math.max(0, myBase.hp),
       updatedAt: Date.now()
     });
-
-    database.ref('rooms/' + window.currentRoomId + '/lastActive').set(Date.now());
 }
 
 function listenToOpponentData() {
@@ -485,7 +454,9 @@ function listenToOpponentData() {
           localUnit.x = netUnit.x;
           localUnit.y = netUnit.y;
           localUnit.hp = netUnit.hp;
+          localUnit.maxHp = netUnit.maxHp;
           localUnit.shieldHp = netUnit.shieldHp;
+          localUnit.maxShieldHp = netUnit.maxShieldHp;
           localUnit.rank = netUnit.rank;
           localUnit.directionRow = netUnit.directionRow;
           localUnit.isFlipped = netUnit.isFlipped;
@@ -501,7 +472,9 @@ function listenToOpponentData() {
             y: netUnit.y,
             hp: netUnit.hp,
             maxHp: netUnit.maxHp,
+            baseHp: UNIT_TYPES[netUnit.type].hp,
             shieldHp: netUnit.shieldHp,
+            maxShieldHp: netUnit.maxShieldHp,
             rank: netUnit.rank,
             directionRow: netUnit.directionRow,
             isFlipped: netUnit.isFlipped,
@@ -1249,7 +1222,7 @@ function syncUnitsDOM() {
         entityEl.style.setProperty('--row', activeRow);
 
         let totalCurrentHp = Math.round(Math.max(0, u.hp) + (u.shieldHp || 0));
-        let hpPercent = Math.min(100, Math.max(0, (u.hp / u.maxHp) * 100));
+        let hpPercent = Math.min(100, Math.max(0, (u.hp / (u.maxHp || 1)) * 100));
         let shieldPercent = u.maxShieldHp > 0 ? Math.min(100, Math.max(0, (u.shieldHp / u.maxShieldHp) * 100)) : 0;
         let hpColorClass = u.owner === 'player' ? 'hp-bar-player' : 'hp-bar-ai';
 
@@ -1301,7 +1274,6 @@ function showToast(msg) {
     setTimeout(() => { t.style.display = "none"; }, 2000);
 }
 
-// Nokta Matrisi Canvas Logic
 const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
 const dpr = window.devicePixelRatio || 1;
