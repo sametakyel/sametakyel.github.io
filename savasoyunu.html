@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://sametakyel.github.io/oyun.css">
+</head>
 <body>
 
 <div id="lobby-modal">
@@ -155,26 +156,32 @@ function joinRoom() {
     const roomRef = database.ref('rooms/' + inputCode);
 
     roomRef.once('value').then(function(snapshot) {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        if (data.status === 'waiting' || (data.player2 && data.player2.connected === false)) {
-          window.currentRoomId = inputCode;
-          window.myRole = 'player2';
-
-          roomRef.update({
-            status: 'playing',
-            'player2/ready': true,
-            'player2/connected': true
-          });
-
-          roomRef.child('player2/connected').onDisconnect().set(false);
-          startMultiplayerGame();
-        } else {
-          alert("Oda dolu veya oyun zaten başlamış!");
-        }
-      } else {
-        alert("Oda bulunamadı!");
+      if (!snapshot.exists()) {
+        alert("Oda bulunamadı! Lütfen kodu kontrol edin.");
+        return;
       }
+
+      const data = snapshot.val();
+      const p2Connected = data.player2 && data.player2.connected;
+
+      if (data.status === 'playing' && p2Connected) {
+        alert("Bu oda dolu ve oyun devam ediyor!");
+        return;
+      }
+
+      window.currentRoomId = inputCode;
+      window.myRole = 'player2';
+
+      roomRef.update({
+        status: 'playing',
+        'player2/ready': true,
+        'player2/connected': true
+      }).then(() => {
+        roomRef.child('player2/connected').onDisconnect().set(false);
+        startMultiplayerGame();
+      });
+    }).catch(function(err) {
+      alert("Odaya bağlanırken hata oluştu: " + err.message);
     });
 }
 
@@ -189,7 +196,7 @@ function startMultiplayerGame() {
     listenToDisconnections();
 
     if (broadcastInterval) clearInterval(broadcastInterval);
-    broadcastInterval = setInterval(broadcastMyState, 150);
+    broadcastInterval = setInterval(broadcastMyState, 120);
 
     requestAnimationFrame(gameLoop);
 }
@@ -217,7 +224,9 @@ function broadcastMyState() {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
     const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
-    const myUnits = units.filter(u => u.owner === myOwnerType && !u.isDestroyed);
+    
+    // Kendi canlı birliklerimizi gönder
+    const myUnits = units.filter(u => u.owner === myOwnerType);
 
     const unitsData = myUnits.map(u => ({
         id: u.id,
@@ -232,7 +241,7 @@ function broadcastMyState() {
         isFlipped: !!u.isFlipped,
         isAttacking: !!u.isAttacking,
         isMoving: !!u.isMoving,
-        isDestroyed: !!u.isDestroyed
+        isDestroyed: u.hp <= 0
     }));
 
     const myBase = window.myRole === 'player1' ? playerBase : aiBase;
@@ -263,10 +272,16 @@ function listenToOpponentData() {
         if (playerBase.hp <= 0) playerBase.isDestroyed = true;
       }
 
-      const activeOpponentIds = {};
+      const activeOpponentIds = new Set();
 
       networkUnits.forEach(netUnit => {
-        activeOpponentIds[netUnit.id] = true;
+        if (netUnit.isDestroyed || netUnit.hp <= 0) {
+            const el = document.getElementById('unit-' + netUnit.id);
+            if (el) el.remove();
+            return;
+        }
+
+        activeOpponentIds.add(netUnit.id);
         let localUnit = units.find(u => u.id === netUnit.id);
 
         if (localUnit) {
@@ -279,8 +294,8 @@ function listenToOpponentData() {
           localUnit.isFlipped = netUnit.isFlipped;
           localUnit.isAttacking = netUnit.isAttacking;
           localUnit.isMoving = netUnit.isMoving;
-          localUnit.isDestroyed = netUnit.isDestroyed;
-        } else if (!netUnit.isDestroyed) {
+          localUnit.isDestroyed = false;
+        } else {
           units.push({
             id: netUnit.id,
             type: netUnit.type,
@@ -301,15 +316,16 @@ function listenToOpponentData() {
         }
       });
 
-      units.forEach(u => {
-        if (u.owner === opponentOwnerType && (!activeOpponentIds[u.id] || u.hp <= 0)) {
-          u.isDestroyed = true;
-          const el = document.getElementById('unit-' + u.id);
-          if (el) el.remove();
+      // Ağda görünmeyen rakip birimleri yerelden temizle
+      for (let i = units.length - 1; i >= 0; i--) {
+        const u = units[i];
+        if (u.owner === opponentOwnerType && (!activeOpponentIds.has(u.id) || u.hp <= 0)) {
+            const el = document.getElementById('unit-' + u.id);
+            if (el) el.remove();
+            units.splice(i, 1);
         }
-      });
+      }
 
-      units = units.filter(u => !(u.owner === opponentOwnerType && u.isDestroyed));
       syncUnitsDOM();
     });
 }
@@ -795,6 +811,15 @@ function gameLoop() {
         }
     });
 
+    // Ölen kendi birimlerimizi ve rakip birimleri temizle
+    for (let i = units.length - 1; i >= 0; i--) {
+        if (units[i].hp <= 0) {
+            const el = document.getElementById(`unit-${units[i].id}`);
+            if (el) el.remove();
+            units.splice(i, 1);
+        }
+    }
+
     syncUnitsDOM();
     requestAnimationFrame(gameLoop);
 }
@@ -804,11 +829,11 @@ setInterval(() => {
     const now = Date.now();
     const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
 
-    units.filter(u => u.owner === myOwner && !u.isDestroyed).forEach(attacker => {
+    units.filter(u => u.owner === myOwner && !u.isDestroyed && u.hp > 0).forEach(attacker => {
         const attackInterval = UNIT_TYPES[attacker.type].interval;
         if (now - attacker.lastAttack < attackInterval) return;
 
-        let targets = units.filter(target => target.owner !== attacker.owner && !target.isDestroyed && isTargetInAttackRange(attacker, target));
+        let targets = units.filter(target => target.owner !== attacker.owner && !target.isDestroyed && target.hp > 0 && isTargetInAttackRange(attacker, target));
 
         if (attacker.targetUnitId) {
             let lockedTarget = targets.find(t => t.id === attacker.targetUnitId);
@@ -828,6 +853,7 @@ setInterval(() => {
 
             let netDamage = Math.max(1, (baseDamage * (1 + rankDamageBonus)) * (1 - targetArmorReduction));
 
+            // Hasarı yerelde düş
             if (target.shieldHp > 0) {
                 if (target.shieldHp >= netDamage) {
                     target.shieldHp -= netDamage;
@@ -846,7 +872,8 @@ setInterval(() => {
 
             triggerFireAnimation(target.x, target.y);
 
-            if (target.hp <= 0 && !target.isDestroyed) {
+            // Hedef birim öldüyse rütbe artışı ver
+            if (target.hp <= 0) {
                 target.hp = 0;
                 target.isDestroyed = true;
                 if (attacker.rank < MAX_RANK) {
@@ -854,12 +881,6 @@ setInterval(() => {
                     attacker.rank += 1;
                     showToast(`Birliğiniz Rütbe Atladı! ⭐x${attacker.rank}`);
                 }
-
-                setTimeout(() => {
-                    const el = document.getElementById(`unit-${target.id}`);
-                    if (el) el.remove();
-                    units = units.filter(u => u.id !== target.id);
-                }, 400);
             }
         } else {
             const enemyBase = window.myRole === 'player1' ? aiBase : playerBase;
@@ -959,6 +980,12 @@ function syncUnitsDOM() {
     document.querySelectorAll('.cell').forEach(c => c.classList.remove('cell-selected'));
 
     units.forEach(u => {
+        if (u.hp <= 0 || u.isDestroyed) {
+            const el = document.getElementById(`unit-${u.id}`);
+            if (el) el.remove();
+            return;
+        }
+
         if (u.id === selectedUnitId) {
             getUnitOccupiedTiles(u).forEach(t => {
                 const c = document.getElementById(`cell-${t.x}-${t.y}`);
@@ -1009,18 +1036,14 @@ function syncUnitsDOM() {
         wrapperEl.className = `sprite-wrapper sprite-wrapper-${u.type}`;
 
         let activeRow = 0;
-        if (u.isDestroyed) {
-            activeRow = 10;
-        } else if (u.isAttacking) {
+        if (u.isAttacking) {
             activeRow = u.directionRow + 5;
         } else {
             activeRow = u.directionRow;
         }
 
         let animClass = '';
-        if (u.isDestroyed) {
-            animClass = 'sprite-destroy';
-        } else if (u.isAttacking) {
+        if (u.isAttacking) {
             animClass = 'sprite-attack';
         } else if (u.isMoving) {
             animClass = 'sprite-moving';
