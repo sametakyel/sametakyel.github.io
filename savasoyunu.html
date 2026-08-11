@@ -57,6 +57,7 @@
         z-index: 3;
         display: block;
       }
+      /* LOBİ MOBİL HİZALAMA VE MOBİL DOKUNMA REVİZYONU */
       .lobby-ui-overlay {
         position: absolute;
         top: 0;
@@ -67,57 +68,66 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: flex-start;
-        padding-left: 5vw;
+        align-items: center;
+        padding: 20px 0;
         box-sizing: border-box;
       }
       .lobby-card {
-        background: rgba(15, 23, 42, 0.85);
+        background: rgba(15, 23, 42, 0.88);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 16px;
-        padding: 24px;
+        padding: 20px 16px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        max-width: 360px;
-        width: 90%;
+        gap: 10px;
+        width: 288px;
+        max-width: 288px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
         box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        box-sizing: border-box;
       }
       .lobby-card h1 {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 800;
         margin: 0;
         color: #ffffff;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        text-align: center;
       }
       .lobby-card p.subtitle {
         color: #cbd5e1;
-        font-size: 13px;
+        font-size: 11px;
         margin: 0;
+        text-align: center;
+        line-height: 1.3;
       }
       .lobby-btn {
         width: 100%;
-        padding: 12px 18px;
+        min-height: 44px;
+        padding: 10px 14px;
         border: none;
         border-radius: 10px;
         font-weight: 700;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         box-sizing: border-box;
+        touch-action: manipulation;
       }
       .btn-create {
         background: #2563eb;
         color: white;
         box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
       }
-      .btn-create:hover {
+      .btn-create:active {
+        transform: scale(0.98);
         background: #1d4ed8;
       }
       .btn-join {
@@ -125,18 +135,20 @@
         color: white;
         box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
       }
-      .btn-join:hover {
+      .btn-join:active {
+        transform: scale(0.98);
         background: #15803d;
       }
       .room-input {
         width: 100%;
-        padding: 10px 12px;
+        height: 42px;
+        padding: 8px 12px;
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: rgba(30, 41, 59, 0.8);
         color: white;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 13px;
         box-sizing: border-box;
         outline: none;
       }
@@ -145,19 +157,19 @@
       }
       .room-select {
         width: 100%;
-        padding: 10px;
+        padding: 6px;
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         background: rgba(15, 23, 42, 0.9);
         color: #f8fafc;
-        font-size: 13px;
+        font-size: 12px;
         outline: none;
-        max-height: 120px;
+        height: 100px;
       }
       .room-select option {
         background: #0f172a;
         color: white;
-        padding: 6px;
+        padding: 8px;
       }
       @keyframes softFloatImg {
         0% { transform: translateY(0px) scale(1); }
@@ -178,8 +190,8 @@
 
   <div class="lobby-ui-overlay">
     <div class="lobby-card">
-      <h1>Lobi & Oda Listesi</h1>
-      <p class="subtitle">Adınızı yazın, oda oluşturun veya listeden seçip katılın.</p>
+      <h1>Lobi & Odalar</h1>
+      <p class="subtitle">Adınızı girin, yeni oda kurun veya seçerek katılın.</p>
 
       <input type="text" id="player-name-input" placeholder="Oyuncu Adınız..." class="room-input" maxlength="15">
 
@@ -187,10 +199,10 @@
         ➕ Yeni Oda Oluştur
       </button>
 
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0;">
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 2px 0;">
 
-      <label style="color: #cbd5e1; font-size: 12px; font-weight: bold;">Mevcut Odalar (1/2):</label>
-      <select id="room-list-select" size="4" class="room-select">
+      <label style="color: #cbd5e1; font-size: 11px; font-weight: bold;">Mevcut Odalar (1/2):</label>
+      <select id="room-list-select" size="3" class="room-select">
         <option value="" disabled style="text-align: center; color: #94a3b8;">Aranıyor...</option>
       </select>
 
@@ -198,7 +210,7 @@
         🚪 Odaya Katıl
       </button>
 
-      <p id="lobby-status" style="color: #f59e0b; font-size: 12px; margin: 0; min-height: 18px; font-weight: bold; text-align: center;"></p>
+      <p id="lobby-status" style="color: #f59e0b; font-size: 11px; margin: 0; min-height: 16px; font-weight: bold; text-align: center;"></p>
     </div>
   </div>
 </div>
@@ -324,7 +336,7 @@ function initLobbyRoomListener() {
                 availableCount++;
                 const opt = document.createElement('option');
                 opt.value = roomId;
-                opt.innerText = `🎮 ${room.hostName || 'Oyuncu'} (1/2) - Bekliyor`;
+                opt.innerText = `🎮 ${room.hostName || 'Oyuncu'} (1/2)`;
                 selectEl.appendChild(opt);
             }
         });
@@ -364,7 +376,6 @@ function createRoom() {
       player1: { name: name, connected: true }
     }).then(() => {
       roomRef.onDisconnect().remove();
-
       updateLobbyStatus(`Oda Açıldı! (${name})<br>2. Oyuncu Bekleniyor...`);
 
       roomRef.child('status').on('value', function(snapshot) {
@@ -386,7 +397,7 @@ function joinSelectedRoom() {
     const selectedRoomId = selectEl ? selectEl.value : null;
 
     if (!selectedRoomId) {
-        alert("Lütfen katılan bir oda seçin!");
+        alert("Lütfen bir oda seçin!");
         return;
     }
 
@@ -429,6 +440,7 @@ function startMultiplayerGame() {
     document.getElementById('role-label').innerText = 'TAKIM: ' + roleText;
 
     listenToOpponentData();
+    listenToMyUnitsData();
     listenToDisconnections();
 
     if (broadcastInterval) clearInterval(broadcastInterval);
@@ -455,11 +467,12 @@ function listenToDisconnections() {
     });
 }
 
+// KENDİ BİRLİKLERİMİZİN VERİSİNİ YAYINLARKEN HP YERİNE SADECE KONUM VE DURUM BİLGİSİ BASILIYOR
 function broadcastMyState() {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
     const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
-    const myUnits = units.filter(u => u.owner === myOwnerType && !u.isDestroyed);
+    const myUnits = units.filter(u => u.owner === myOwnerType && !u.isDestroyed && u.hp > 0);
 
     const unitsData = myUnits.map(u => ({
         id: u.id,
@@ -479,10 +492,47 @@ function broadcastMyState() {
 
     const myBase = window.myRole === 'player1' ? playerBase : aiBase;
 
-    database.ref('rooms/' + window.currentRoomId + '/gameState/' + window.myRole).set({
+    database.ref('rooms/' + window.currentRoomId + '/gameState/' + window.myRole).update({
       units: unitsData,
-      baseHp: Math.max(0, myBase.hp),
       updatedAt: Date.now()
+    });
+}
+
+// RAKİBİN BİZE VERDİĞİ HASARI VE CAN DÜŞÜŞLERİNİ ANLIK DİNLEME (HASARIN BİZİM BROADCAST TARAFINDAN EZİLMESİNİ ENGELLER)
+function listenToMyUnitsData() {
+    const myRolePath = window.myRole;
+    const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
+
+    database.ref('rooms/' + window.currentRoomId + '/gameState/' + myRolePath).on('value', function(snapshot) {
+        if (!snapshot.exists()) return;
+        const data = snapshot.val();
+        
+        if (data.baseHp !== undefined) {
+            if (window.myRole === 'player1') {
+                playerBase.hp = data.baseHp;
+                if (playerBase.hp <= 0) playerBase.isDestroyed = true;
+            } else {
+                aiBase.hp = data.baseHp;
+                if (aiBase.hp <= 0) aiBase.isDestroyed = true;
+            }
+        }
+
+        const networkUnits = data.units || [];
+        networkUnits.forEach(netUnit => {
+            let localUnit = units.find(u => u.id === netUnit.id && u.owner === myOwnerType);
+            if (localUnit) {
+                // Rakip bize saldırdıysa ve Firebase'de canımız düştüyse yerel canımızı güncelle
+                if (netUnit.hp < localUnit.hp) {
+                    localUnit.hp = netUnit.hp;
+                }
+                if (netUnit.shieldHp !== undefined) {
+                    localUnit.shieldHp = netUnit.shieldHp;
+                }
+                if (localUnit.hp <= 0) {
+                    localUnit.isDestroyed = true;
+                }
+            }
+        });
     });
 }
 
@@ -498,10 +548,10 @@ function listenToOpponentData() {
       const opponentBaseHp = data.baseHp;
 
       if (window.myRole === 'player1') {
-        aiBase.hp = opponentBaseHp;
+        if (opponentBaseHp !== undefined) aiBase.hp = opponentBaseHp;
         if (aiBase.hp <= 0) aiBase.isDestroyed = true;
       } else {
-        playerBase.hp = opponentBaseHp;
+        if (opponentBaseHp !== undefined) playerBase.hp = opponentBaseHp;
         if (playerBase.hp <= 0) playerBase.isDestroyed = true;
       }
 
@@ -562,7 +612,7 @@ function listenToOpponentData() {
     });
 }
 
-// RAKİP BİRLİĞE VEYA BİNAYA HASAR VERİLDİĞİNDE VERİTABANINA BİREBİR YAZAN KRİTİK METOT
+// RAKİP BİRLİĞE VEYA BİNAYA HASAR VERİLDİĞİNDE VERİTABANINA BİREBİR YAZAN ATOMİK METOT
 function applyDamageToOpponentTarget(attacker, targetObj, netDamage) {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
@@ -578,13 +628,13 @@ function applyDamageToOpponentTarget(attacker, targetObj, netDamage) {
     } else {
         // Hedef Rakip Birlik ise
         targetObj.hp = Math.max(0, targetObj.hp - netDamage); // Yerel anlık tepki için
+        if (targetObj.hp <= 0) targetObj.isDestroyed = true;
 
         const opponentStateRef = database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/units`);
-        opponentStateRef.get().then(snapshot => {
-            if (!snapshot.exists()) return;
-            let netUnits = snapshot.val() || [];
-            let targetIndex = netUnits.findIndex(u => u.id === targetObj.id);
+        opponentStateRef.transaction(netUnits => {
+            if (!netUnits) return netUnits;
 
+            let targetIndex = netUnits.findIndex(u => u.id === targetObj.id);
             if (targetIndex !== -1) {
                 let unitData = netUnits[targetIndex];
                 if (unitData.shieldHp && unitData.shieldHp > 0) {
@@ -599,11 +649,12 @@ function applyDamageToOpponentTarget(attacker, targetObj, netDamage) {
                     unitData.hp = Math.max(0, unitData.hp - netDamage);
                 }
 
-                database.ref(`rooms/${window.currentRoomId}/gameState/${opponentRole}/units/${targetIndex}`).update({
-                    hp: unitData.hp,
-                    shieldHp: unitData.shieldHp || 0
-                });
+                if (unitData.hp <= 0) {
+                    // Can bittiyse diziden tamamen kaldır
+                    netUnits.splice(targetIndex, 1);
+                }
             }
+            return netUnits;
         });
     }
 }
@@ -1089,6 +1140,7 @@ function gameLoop() {
         }
     });
 
+    // ÖLÜ BİRLİKLERİ TEMİZLE
     for (let i = units.length - 1; i >= 0; i--) {
         if (units[i].hp <= 0 || units[i].isDestroyed) {
             const el = document.getElementById(`unit-${units[i].id}`);
@@ -1101,7 +1153,7 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// SALDIRI VE DİNANİK HASAR DÖNGÜSÜ (GÜNCELLENDİ)
+// SALDIRI VE CAN DÜŞME DÖNGÜSÜ
 setInterval(() => {
     if (!window.isMultiplayerActive) return;
     const now = Date.now();
@@ -1137,10 +1189,10 @@ setInterval(() => {
 
             triggerFireAnimation(target.x, target.y);
 
-            // Veritabanına Hasarı Yaz
+            // Veritabanına Atomik Olarak Hasarı Yaz
             applyDamageToOpponentTarget(attacker, target, netDamage);
 
-            if (target.hp <= netDamage) {
+            if (target.hp <= 0) {
                 if (attacker.rank < MAX_RANK) {
                     attacker.kills += 1;
                     attacker.rank += 1;
@@ -1165,7 +1217,7 @@ setInterval(() => {
                 // Ana Bina Hasarını Veritabanına Yaz
                 applyDamageToOpponentTarget(attacker, enemyBase, netDamage);
 
-                if (enemyBase.hp <= netDamage && !enemyBase.isDestroyed) {
+                if (enemyBase.hp <= 0 && !enemyBase.isDestroyed) {
                     enemyBase.hp = 0;
                     enemyBase.isDestroyed = true;
                     syncUnitsDOM();
