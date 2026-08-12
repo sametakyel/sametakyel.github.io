@@ -7,221 +7,67 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <link rel="stylesheet" href="https://sametakyel.github.io/oyun.css">
-
-    <style>
-      .game-background-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-        z-index: 9999;
-      }
-      .bg-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover; 
-        object-position: top center;
-        z-index: 1;
-        animation: softFloatImg 14s ease-in-out infinite alternate;
-      }
-      .gradient-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 2;
-        pointer-events: none;
-        background: linear-gradient(
-          to right,
-          rgba(255, 255, 255, 0.28) 0%,
-          rgba(0, 0, 0, 0.40) 45%,
-          rgba(255, 255, 255, 0.22) 75%,
-          rgba(0, 0, 0, 0.60) 100%
-        );
-        background-size: 200% 100%;
-        animation: gradientFlowRight 10s ease-in-out infinite alternate;
-      }
-      #dotCanvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 3;
-        display: block;
-      }
-      
-      /* LOBİ SOLA HİZALAMA (%5 MARGIN LEFTS VE %50 TRANSPARAN) */
-      .lobby-ui-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 4;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start; /* Sola dayama */
-        padding: 20px 0;
-        box-sizing: border-box;
-      }
-      .lobby-card {
-        background: rgba(15, 23, 42, 0.50) !important; /* %50 Transparan Arka Plan */
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 16px;
-        padding: 20px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: 288px;
-        max-width: 288px;
-        margin-left: 5%; /* Soldan %5 margin */
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        box-sizing: border-box;
-      }
-      .lobby-card h1 {
-        font-size: 20px;
-        font-weight: 800;
-        margin: 0;
-        color: #ffffff;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        text-align: center;
-      }
-      .lobby-card p.subtitle {
-        color: #cbd5e1;
-        font-size: 11px;
-        margin: 0;
-        text-align: center;
-        line-height: 1.3;
-      }
-      .lobby-btn {
-        width: 100%;
-        min-height: 44px;
-        padding: 10px 14px;
-        border: none;
-        border-radius: 10px;
-        font-weight: 700;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        box-sizing: border-box;
-        touch-action: manipulation;
-      }
-      .btn-create {
-        background: #2563eb;
-        color: white;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-      }
-      .btn-create:active {
-        transform: scale(0.98);
-        background: #1d4ed8;
-      }
-      .btn-join {
-        background: #16a34a;
-        color: white;
-        box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
-      }
-      .btn-join:active {
-        transform: scale(0.98);
-        background: #15803d;
-      }
-      .room-input {
-        width: 100%;
-        height: 42px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(30, 41, 59, 0.6);
-        color: white;
-        font-weight: 600;
-        font-size: 13px;
-        box-sizing: border-box;
-        outline: none;
-      }
-      .room-input:focus {
-        border-color: #3b82f6;
-      }
-      .room-select {
-        width: 100%;
-        padding: 6px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(15, 23, 42, 0.6);
-        color: #f8fafc;
-        font-size: 12px;
-        outline: none;
-        height: 100px;
-      }
-      .room-select option {
-        background: #0f172a;
-        color: white;
-        padding: 8px;
-      }
-      @keyframes softFloatImg {
-        0% { transform: translateY(0px) scale(1); }
-        100% { transform: translateY(-10px) scale(1.02); }
-      }
-      @keyframes gradientFlowRight {
-        0% { background-position: 0% 0%; }
-        100% { background-position: 100% 0%; }
-      }
-    </style>
+    <link rel="stylesheet" href="https://sametakyel.github.io/savas.css">
 </head>
 <body>
 
-<div id="lobby-container" class="game-background-container">
-  <img src="https://sametakyel.github.io/arkaplanoyun.png" alt="Oyun Arka Planı" class="bg-image">
-  <div class="gradient-overlay"></div>
-  <canvas id="dotCanvas"></canvas>
-
-  <div class="lobby-ui-overlay">
-    <div class="lobby-card">
-      <h1>Lobi & Odalar</h1>
-      <p class="subtitle">Adınızı girin, yeni oda kurun veya seçerek katılın.</p>
-
-      <input type="text" id="player-name-input" placeholder="Oyuncu Adınız..." class="room-input" maxlength="15">
-
-      <button onclick="createRoom()" class="lobby-btn btn-create">
-        ➕ Yeni Oda Oluştur
-      </button>
-
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 2px 0;">
-
-      <label style="color: #cbd5e1; font-size: 11px; font-weight: bold;">Mevcut Odalar (1/2):</label>
-      <select id="room-list-select" size="3" class="room-select">
-        <option value="" disabled style="text-align: center; color: #94a3b8;">Aranıyor...</option>
-      </select>
-
-      <button onclick="joinSelectedRoom()" class="lobby-btn btn-join">
-        🚪 Odaya Katıl
-      </button>
-
-      <p id="lobby-status" style="color: #f59e0b; font-size: 11px; margin: 0; min-height: 16px; font-weight: bold; text-align: center;"></p>
-    </div>
-  </div>
-</div>
 
 <div id="portrait-warning">
     <div class="icon">📱🔄</div>
     <h2>Lütfen Cihazınızı Yatay Konuma Getirin</h2>
     <p style="margin-top: 8px; font-size: 14px; opacity: 0.8;">Bu oyun yalnızca yatay (Landscape) modda oynanabilir.</p>
 </div>
+
+    <div id="lobby-container" class="game-background-container">
+  <img src="https://sametakyel.github.io/arkaplanoyun.png" alt="Oyun Arka Planı" class="bg-image">
+  <div class="gradient-overlay"></div>
+  <canvas id="dotCanvas"></canvas>
+  <div class="lobby-sidebar">
+    <div class="cards-wrapper">
+      <div class="cards-container">
+        <div class="lobby-card">
+          <h1>Lobi & Odalar</h1>
+          <p class="subtitle">Adınızı girin, yeni oda kurun veya katılın.</p>
+<input type="text" id="player-name-input" placeholder="Oyuncu Adınız..." class="room-input form-element-equal" maxlength="15">
+<button onclick="createRoom()" class="lobby-btn btn-create form-element-equal">
+            ➕ Yeni Oda Oluştur
+          </button>
+
+          <hr class="divider-line">
+
+          <label class="room-section-label">Mevcut Odalar (1/2):</label>
+          
+          <select id="room-list-select" size="1" class="room-select form-element-equal">
+            <option value="" disabled selected class="default-option">Oda Seçiniz...</option>
+          </select>
+
+          <button onclick="joinSelectedRoom()" class="lobby-btn btn-join form-element-equal">
+            🚪 Odaya Katıl
+          </button>
+
+          <p id="lobby-status" class="status-text"></p>
+        </div>
+        <div class="lobby-card">
+          <h1>Oyuncu Bilgisi & Duyurular</h1>
+          <p class="subtitle">Oyun içi güncellemeler ve profil özetiniz.</p>
+
+          <div class="info-list">
+            <div class="info-item">
+              <strong class="title-blue">📢 Sezon Güncellemesi:</strong>
+              <p>Yeni harita modları ve odalar aktif edildi.</p>
+            </div>
+            <div class="info-item">
+              <strong class="title-green">🏆 Günün İpucu:</strong>
+              <p>Hızlı bağlanmak için lobi odalarını takip edin.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <div id="toast"></div>
 
