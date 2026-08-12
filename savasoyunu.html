@@ -8,9 +8,48 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://sametakyel.github.io/savas.css">
+    
+    <style>
+        /* Dinamik Renkli Birlik Dosya Yolları & Sprite Tanımlamaları */
+        .sprite-soldier-mavi { background-image: url('https://sametakyel.github.io/maviasker.png'); }
+        .sprite-tank-mavi    { background-image: url('https://sametakyel.github.io/mavitank.png'); }
+        .sprite-plane-mavi   { background-image: url('https://sametakyel.github.io/mavijet.png'); }
+
+        .sprite-soldier-kirmizi { background-image: url('https://sametakyel.github.io/kirmiziasker.png'); }
+        .sprite-tank-kirmizi    { background-image: url('https://sametakyel.github.io/kirmizitank.png'); }
+        .sprite-plane-kirmizi   { background-image: url('https://sametakyel.github.io/kirmizijet.png'); }
+
+        /* Ana Bina (Base) Sprite Yapısı */
+        .base-building-entity {
+            width: 100%;
+            height: 100%;
+            background-image: url('https://sametakyel.github.io/anabina.png');
+            background-size: 800% 200%; /* 8 Sütun, 2 Satır */
+            background-position: 0% 0%;
+        }
+
+        /* 1. Satır: Oyun Başı Kurulum Animasyonu (1. sütundan 8. sütuna) */
+        .base-building-init {
+            animation: baseBuildAnim 1.2s steps(7) forwards;
+        }
+
+        @keyframes baseBuildAnim {
+            from { background-position: 0% 0%; }
+            to   { background-position: 100% 0%; }
+        }
+
+        /* 2. Satır: Yok Olma Animasyonu (1. sütundan 8. sütuna) */
+        .base-building-destroy {
+            animation: baseDestroyAnim 1.5s steps(7) forwards;
+        }
+
+        @keyframes baseDestroyAnim {
+            from { background-position: 0% 100%; }
+            to   { background-position: 100% 100%; }
+        }
+    </style>
 </head>
 <body>
-
 
 <div id="portrait-warning">
     <div class="icon">📱🔄</div>
@@ -18,7 +57,7 @@
     <p style="margin-top: 8px; font-size: 14px; opacity: 0.8;">Bu oyun yalnızca yatay (Landscape) modda oynanabilir.</p>
 </div>
 
-    <div id="lobby-container" class="game-background-container">
+<div id="lobby-container" class="game-background-container">
   <img src="https://sametakyel.github.io/arkaplanoyun.png" alt="Oyun Arka Planı" class="bg-image">
   <div class="gradient-overlay"></div>
   <canvas id="dotCanvas"></canvas>
@@ -28,8 +67,8 @@
         <div class="lobby-card">
           <h1>Lobi & Odalar</h1>
           <p class="subtitle">Adınızı girin, yeni oda kurun veya katılın.</p>
-<input type="text" id="player-name-input" placeholder="Oyuncu Adınız..." class="room-input form-element-equal" maxlength="15">
-<button onclick="createRoom()" class="lobby-btn btn-create form-element-equal">
+          <input type="text" id="player-name-input" placeholder="Oyuncu Adınız..." class="room-input form-element-equal" maxlength="15">
+          <button onclick="createRoom()" class="lobby-btn btn-create form-element-equal">
             ➕ Yeni Oda Oluştur
           </button>
 
@@ -62,12 +101,10 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </div>
-
 
 <div id="toast"></div>
 
@@ -134,8 +171,10 @@ const database = firebase.database();
 window.currentRoomId = null;
 window.myRole = null;
 window.playerName = "";
+window.opponentName = "Rakip";
 window.isMultiplayerActive = false;
 let broadcastInterval = null;
+let gameOverHandled = false;
 
 const GRID_COLS = 20;
 let GRID_ROWS = 10;
@@ -149,16 +188,17 @@ let isHealOnCooldown = false;
 let healCooldownTimer = null;
 let cellSizePx = 40;
 
-let playerBase = { x: 1, y: 5, hp: 1000, maxHp: 1000, owner: 'player', isDestroyed: false };
-let aiBase = { x: GRID_COLS - 2, y: 5, hp: 1000, maxHp: 1000, owner: 'ai', isDestroyed: false };
+let playerBase = { x: 1, y: 5, hp: 1000, maxHp: 1000, owner: 'player', isDestroyed: false, isAnimPlayed: false };
+let aiBase = { x: GRID_COLS - 2, y: 5, hp: 1000, maxHp: 1000, owner: 'ai', isDestroyed: false, isAnimPlayed: false };
 
 let rockObstacles = [];
 let waterObstacles = [];
 
+// YENİ BİRLİK LİMİTLERİ: Piyade (5), Tank (5), Uçak (3)
 const UNIT_TYPES = {
-    soldier: { category: 'soldier', cost: 10, hp: 30,  dmg: 8,   interval: 1600, moveSpeed: 450, attackRange: 1, maxLimit: 99, label: 'Piyade' },
-    tank:    { category: 'tank',    cost: 20, hp: 120, dmg: 25,  interval: 2400, moveSpeed: 520, attackRange: 1, maxLimit: 5,  label: 'Tank' },
-    plane:   { category: 'plane',   cost: 30, hp: 200, dmg: 45,  interval: 3600, moveSpeed: 240, attackRange: 1, maxLimit: 3,  label: 'Uçak' }
+    soldier: { category: 'soldier', cost: 10, hp: 30,  dmg: 8,   interval: 1600, moveSpeed: 450, attackRange: 1, maxLimit: 5, label: 'Piyade' },
+    tank:    { category: 'tank',    cost: 20, hp: 120, dmg: 25,  interval: 2400, moveSpeed: 520, attackRange: 1, maxLimit: 5, label: 'Tank' },
+    plane:   { category: 'plane',   cost: 30, hp: 200, dmg: 45,  interval: 3600, moveSpeed: 240, attackRange: 1, maxLimit: 3, label: 'Uçak' }
 };
 
 function initLobbyRoomListener() {
@@ -199,7 +239,7 @@ function getPlayerName() {
     const input = document.getElementById('player-name-input');
     let name = input ? input.value.trim() : '';
     if (!name) {
-        alert("Lütfen önce Oyuncu Adınızı girin!");
+        showToast("Lütfen önce Oyuncu Adınızı girin!");
         return null;
     }
     return name;
@@ -229,11 +269,15 @@ function createRoom() {
       roomRef.child('status').on('value', function(snapshot) {
         if (snapshot.exists() && snapshot.val() === 'playing') {
           roomRef.child('status').off();
-          startMultiplayerGame();
+          // Rakip adını al
+          roomRef.child('player2/name').get().then(snap => {
+            if (snap.exists()) window.opponentName = snap.val();
+            startMultiplayerGame();
+          });
         }
       });
     }).catch(err => {
-      alert("Oda oluşturma hatası: " + err.message);
+      showToast("Oda oluşturma hatası: " + err.message);
     });
 }
 
@@ -245,7 +289,7 @@ function joinSelectedRoom() {
     const selectedRoomId = selectEl ? selectEl.value : null;
 
     if (!selectedRoomId) {
-        alert("Lütfen bir oda seçin!");
+        showToast("Lütfen bir oda seçin!");
         return;
     }
 
@@ -257,15 +301,17 @@ function joinSelectedRoom() {
 
     roomRef.get().then(snapshot => {
       if (!snapshot.exists()) {
-        alert("Oda artık mevcut değil!");
+        showToast("Oda artık mevcut değil!");
         return;
       }
       
       const data = snapshot.val();
       if (data.totalPlayers >= 2 || data.status !== 'waiting') {
-        alert("Bu oda doldu veya oyuna başladı!");
+        showToast("Bu oda doldu veya oyuna başladı!");
         return;
       }
+
+      window.opponentName = data.hostName || "Rakip";
 
       roomRef.update({
         status: 'playing',
@@ -276,11 +322,12 @@ function joinSelectedRoom() {
         startMultiplayerGame();
       });
     }).catch(err => {
-      alert("Odaya katılma hatası: " + err.message);
+      showToast("Odaya katılma hatası: " + err.message);
     });
 }
 
 function startMultiplayerGame() {
+    gameOverHandled = false;
     window.isMultiplayerActive = true;
     document.getElementById('lobby-container').style.display = 'none';
 
@@ -297,6 +344,31 @@ function startMultiplayerGame() {
     requestAnimationFrame(gameLoop);
 }
 
+function returnToLobby() {
+    window.isMultiplayerActive = false;
+    if (broadcastInterval) clearInterval(broadcastInterval);
+
+    // Durum ve Sahayı Temizle
+    units = [];
+    selectedUnitId = null;
+    playerGold = 50;
+
+    playerBase.hp = playerBase.maxHp;
+    playerBase.isDestroyed = false;
+    playerBase.isAnimPlayed = false;
+
+    aiBase.hp = aiBase.maxHp;
+    aiBase.isDestroyed = false;
+    aiBase.isAnimPlayed = false;
+
+    const mapEl = document.getElementById('grid-map');
+    if (mapEl) mapEl.innerHTML = '';
+
+    document.getElementById('lobby-container').style.display = 'flex';
+    initGridMap();
+    syncUnitsDOM();
+}
+
 function updateLobbyStatus(msg) {
     const el = document.getElementById('lobby-status');
     if (el) el.innerHTML = msg;
@@ -306,16 +378,17 @@ function listenToDisconnections() {
     const roomRef = database.ref('rooms/' + window.currentRoomId);
 
     roomRef.child('totalPlayers').on('value', function(snapshot) {
-        if (snapshot.exists() && snapshot.val() < 2 && window.isMultiplayerActive) {
-            window.isMultiplayerActive = false;
-            if (broadcastInterval) clearInterval(broadcastInterval);
-            alert("Rakibin bağlantısı koptu veya oyundan ayrıldı!");
-            location.reload();
+        if (snapshot.exists() && snapshot.val() < 2 && window.isMultiplayerActive && !gameOverHandled) {
+            gameOverHandled = true;
+            showToast("Rakibin bağlantısı koptu! Lobiye dönülüyor...", 3000);
+            setTimeout(() => {
+                returnToLobby();
+            }, 3000);
         }
     });
 }
 
-// BİRLİK SAHİBİ SADECE KONUM VE DURUM BİLGİSİ YAYINLAR (CAN ASLA YAYINLANMAZ VEYA EZİLMEZ)
+// BİRLİK SAHİBİ KONUM VE DURUM BİLGİSİ YAYINLAR
 function broadcastMyState() {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
@@ -327,7 +400,7 @@ function broadcastMyState() {
         type: u.type,
         x: Math.round(u.x * 100) / 100,
         y: Math.round(u.y * 100) / 100,
-        hp: Math.round(u.hp), // Sadece rakibe gösterim için HP (Senkronizasyon amaçlı)
+        hp: Math.round(u.hp),
         shieldHp: Math.round(u.shieldHp || 0),
         rank: u.rank || 0,
         directionRow: u.directionRow || 0,
@@ -342,7 +415,6 @@ function broadcastMyState() {
     });
 }
 
-// RAKİBİN BİZİM BİRLİKLERİMİZE VEYA BİNAMIZA VERDİĞİ HASAR OLAYLARINI (COMBAT EVENTS) DİNLER
 function listenToCombatEvents() {
     const eventsRef = database.ref('rooms/' + window.currentRoomId + '/combatEvents');
 
@@ -350,21 +422,20 @@ function listenToCombatEvents() {
         const event = snapshot.val();
         if (!event || event.targetRole !== window.myRole) return;
 
-        // Bize yöneltilen saldırı olayı var
         if (event.isBaseTarget) {
-            // Ana Binaya Hasar
             const myBaseObj = window.myRole === 'player1' ? playerBase : aiBase;
             myBaseObj.hp = Math.max(0, myBaseObj.hp - event.damage);
-            if (myBaseObj.hp <= 0 && !myBaseObj.isDestroyed) {
+            if (myBaseObj.hp <= 0 && !myBaseObj.isDestroyed && !gameOverHandled) {
+                gameOverHandled = true;
                 myBaseObj.isDestroyed = true;
                 syncUnitsDOM();
+                
+                showToast(`KAZANAN: ${window.opponentName}! 🎉`, 3000);
                 setTimeout(() => {
-                    alert("ANA BİNANIZ YOK EDİLDİ, KAYBETTİNİZ!");
-                    location.reload();
-                }, 500);
+                    returnToLobby();
+                }, 3000);
             }
         } else {
-            // Bizim Birliğimize Hasar
             const myOwnerType = window.myRole === 'player1' ? 'player' : 'ai';
             let localUnit = units.find(u => u.id === event.targetUnitId && u.owner === myOwnerType);
             if (localUnit && !localUnit.isDestroyed) {
@@ -383,7 +454,6 @@ function listenToCombatEvents() {
                     localUnit.hp = Math.max(0, localUnit.hp - damage);
                 }
 
-                // Canı sıfırlanan birim yerelde direkt silinir
                 if (localUnit.hp <= 0) {
                     localUnit.isDestroyed = true;
                     const el = document.getElementById(`unit-${localUnit.id}`);
@@ -393,13 +463,11 @@ function listenToCombatEvents() {
             }
         }
 
-        // İşlenen Olayı Firebase'den Temizle
         snapshot.ref.remove();
         syncUnitsDOM();
     });
 }
 
-// RAKİBİN HAREKETLERİNİ DİNLER (CAN BİLGİSİNİ KENDİSİ DÜŞÜRMEDİĞİ SÜRECE EZMEZ)
 function listenToOpponentData() {
     const opponentRole = window.myRole === 'player1' ? 'player2' : 'player1';
     const opponentOwnerType = window.myRole === 'player1' ? 'ai' : 'player';
@@ -420,7 +488,6 @@ function listenToOpponentData() {
         if (localUnit) {
           localUnit.x = netUnit.x;
           localUnit.y = netUnit.y;
-          // Can verisini rakip taraf kendi onayladıysa eşitle
           if (netUnit.hp < localUnit.hp) localUnit.hp = netUnit.hp;
           localUnit.shieldHp = netUnit.shieldHp;
           localUnit.rank = netUnit.rank;
@@ -451,7 +518,6 @@ function listenToOpponentData() {
         }
       });
 
-      // Sahada artık bulunmayan rakip birlikleri temizle
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
         if (u.owner === opponentOwnerType && !activeOpponentIds.has(u.id)) {
@@ -465,20 +531,17 @@ function listenToOpponentData() {
     });
 }
 
-// HASAR VERME OLAYINI ATOMİK OLARAK FİREBASE'E BASAN EVENT METODU (EZME YAPMAZ)
 function emitDamageEvent(targetObj, netDamage) {
     if (!window.isMultiplayerActive || !window.currentRoomId) return;
 
     const targetRole = window.myRole === 'player1' ? 'player2' : 'player1';
     const isBase = targetObj.owner && !targetObj.type;
 
-    // Hasarı yerel görselde hızlı hissettirmek için anında düşür
     targetObj.hp = Math.max(0, targetObj.hp - netDamage);
     if (targetObj.hp <= 0) {
         targetObj.isDestroyed = true;
     }
 
-    // Hasar olayını veritabanına fırlat
     database.ref('rooms/' + window.currentRoomId + '/combatEvents').push({
         targetRole: targetRole,
         isBaseTarget: isBase,
@@ -525,6 +588,7 @@ function resizeGridMap() {
 
 function initGridMap() {
     const mapEl = document.getElementById('grid-map');
+    if (!mapEl) return;
     mapEl.innerHTML = '';
 
     for (let r = 0; r < GRID_ROWS; r++) {
@@ -936,6 +1000,7 @@ setInterval(() => {
     });
 }, 500);
 
+// GAME LOOP (Çapraz Hız Düzenlemesi Entegre Edildi)
 function gameLoop() {
     if (!window.isMultiplayerActive) return;
     const now = Date.now();
@@ -944,12 +1009,19 @@ function gameLoop() {
     units.forEach(u => {
         if (u.isDestroyed || u.owner !== myOwner) return;
 
-        const moveInterval = UNIT_TYPES[u.type].moveSpeed;
+        let moveInterval = UNIT_TYPES[u.type].moveSpeed;
 
         if (u.path && u.path.length > 0) {
+            let nextStep = u.path[0];
+
+            // ÇAPRAZ HAREKET KONTROLÜ: Yatay ve Dikey koordinatlar aynı anda değişiyorsa %80 Hız
+            let isDiagonal = (nextStep.x !== Math.round(u.x)) && (nextStep.y !== Math.round(u.y));
+            if (isDiagonal) {
+                moveInterval = moveInterval * 1.25; // Adım süresi 1.25 katına çıkarılır -> Hız %80'e düşer
+            }
+
             u.isMoving = true;
             if (now - u.lastMoveTime >= moveInterval) {
-                let nextStep = u.path[0];
                 let isFinalStep = (u.path.length === 1);
 
                 if (!isTileBlockedForUnit(u, nextStep.x, nextStep.y, isFinalStep)) {
@@ -969,7 +1041,6 @@ function gameLoop() {
         }
     });
 
-    // CANI BİTEN BİRLİKLERİ TEMİZLE
     for (let i = units.length - 1; i >= 0; i--) {
         if (units[i].hp <= 0 || units[i].isDestroyed) {
             const el = document.getElementById(`unit-${units[i].id}`);
@@ -982,13 +1053,14 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// SALDIRI DÖNGÜSÜ (EVENT TABANLI EVENT-DRIVEN COMBAT)
+// SALDIRI DÖNGÜSÜ (Durarak Saldırı Kuralı Entegre Edildi)
 setInterval(() => {
     if (!window.isMultiplayerActive) return;
     const now = Date.now();
     const myOwner = window.myRole === 'player1' ? 'player' : 'ai';
 
-    units.filter(u => u.owner === myOwner && !u.isDestroyed && u.hp > 0).forEach(attacker => {
+    // DURARAK SALDIRI KURALI: Hareketli birlikler (!u.isMoving) atış yapamaz
+    units.filter(u => u.owner === myOwner && !u.isDestroyed && u.hp > 0 && !u.isMoving).forEach(attacker => {
         const attackInterval = UNIT_TYPES[attacker.type].interval;
         if (now - attacker.lastAttack < attackInterval) return;
 
@@ -1002,9 +1074,7 @@ setInterval(() => {
         if (targets.length > 0) {
             const target = targets[0];
             
-            if (!attacker.isMoving) {
-                updateUnitDirection(attacker, target.x, target.y);
-            }
+            updateUnitDirection(attacker, target.x, target.y);
 
             let baseDamage = attacker.baseDmg;
             let rankDamageBonus = attacker.rank * 0.35;
@@ -1018,7 +1088,6 @@ setInterval(() => {
 
             triggerFireAnimation(target.x, target.y);
 
-            // HASAR OLAYINI FİREBASE'E FIRLAT
             emitDamageEvent(target, netDamage);
 
             if (target.hp <= 0) {
@@ -1031,9 +1100,7 @@ setInterval(() => {
         } else {
             const enemyBase = window.myRole === 'player1' ? aiBase : playerBase;
             if (isTargetInAttackRange(attacker, enemyBase)) {
-                if (!attacker.isMoving) {
-                    updateUnitDirection(attacker, enemyBase.x, enemyBase.y);
-                }
+                updateUnitDirection(attacker, enemyBase.x, enemyBase.y);
 
                 let netDamage = attacker.baseDmg * (1 + (attacker.rank * 0.35));
                 
@@ -1043,17 +1110,18 @@ setInterval(() => {
 
                 triggerFireAnimation(enemyBase.x, enemyBase.y);
 
-                // ANA BİNA HASAR OLAYINI FIRLAT
                 emitDamageEvent(enemyBase, netDamage);
 
-                if (enemyBase.hp <= 0 && !enemyBase.isDestroyed) {
+                if (enemyBase.hp <= 0 && !enemyBase.isDestroyed && !gameOverHandled) {
+                    gameOverHandled = true;
                     enemyBase.hp = 0;
                     enemyBase.isDestroyed = true;
                     syncUnitsDOM();
+
+                    showToast(`TEBRİKLER ${window.playerName}! ZAFER SENİN! 🏆`, 3000);
                     setTimeout(() => {
-                        alert("TEBRİKLER! RAKİP BİNA YOK EDİLDİ, ZAFER SENİN!");
-                        location.reload();
-                    }, 800);
+                        returnToLobby();
+                    }, 3000);
                 }
             }
         }
@@ -1122,6 +1190,7 @@ function startHealCooldown() {
     }, 1000);
 }
 
+// BİRLİK VE BİNA DOM SENKRONİZASYONU (Dinamik Renkli Sprite'lar ve Ana Bina Görselleri Entegre Edildi)
 function syncUnitsDOM() {
     const mapEl = document.getElementById('grid-map');
     if (!mapEl) return;
@@ -1199,7 +1268,16 @@ function syncUnitsDOM() {
         }
 
         let flipClass = u.isFlipped ? 'sprite-flip' : '';
-        let spriteClass = `sprite-${u.type}-${u.owner === 'player' ? 'player' : 'ai'}`;
+
+        // DİNAMİK RENK SEÇİMİ: player1 = Mavi, player2 = Kırmızı
+        let ownerColor = "";
+        if (window.myRole === 'player1') {
+            ownerColor = (u.owner === 'player') ? 'mavi' : 'kirmizi';
+        } else {
+            ownerColor = (u.owner === 'player') ? 'kirmizi' : 'mavi';
+        }
+
+        let spriteClass = `sprite-${u.type}-${ownerColor}`;
         entityEl.className = `sprite-entity ${spriteClass} ${animClass} ${flipClass}`.trim();
 
         entityEl.style.setProperty('--row', activeRow);
@@ -1225,15 +1303,23 @@ function syncUnitsDOM() {
         }
     });
 
+    // ANA BİNA GÖRSEL VE ANİMASYON DÜZENLEMESİ (anabina.png)
     [playerBase, aiBase].forEach(b => {
         const cell = document.getElementById(`cell-${b.x}-${b.y}`);
         if (cell) {
             let hpPercent = Math.min(100, Math.max(0, (b.hp / b.maxHp) * 100));
             let hpColorClass = b.owner === 'player' ? 'hp-bar-player' : 'hp-bar-ai';
-            let animStateClass = b.isDestroyed ? 'base-building-destroy' : '';
+
+            let baseStateClass = "";
+            if (b.isDestroyed) {
+                baseStateClass = "base-building-destroy";
+            } else if (!b.isAnimPlayed) {
+                baseStateClass = "base-building-init";
+                b.isAnimPlayed = true;
+            }
 
             cell.innerHTML = `
-                <div class="base-building-entity ${animStateClass}"></div>
+                <div class="base-building-entity ${baseStateClass}"></div>
                 <div class="base-hp-wrapper">
                     <span class="hp-text-label">${Math.round(Math.max(0, b.hp))}</span>
                     <div class="hp-bar-container">
@@ -1249,12 +1335,12 @@ function updateUI() {
     document.getElementById("player-gold").innerText = playerGold;
 }
 
-function showToast(msg) {
+function showToast(msg, duration = 2000) {
     const t = document.getElementById("toast");
     if (!t) return;
     t.innerText = msg;
     t.style.display = "block";
-    setTimeout(() => { t.style.display = "none"; }, 2000);
+    setTimeout(() => { t.style.display = "none"; }, duration);
 }
 
 const canvas = document.getElementById('dotCanvas');
